@@ -4,9 +4,9 @@ Service Desk com acompanhamento de SLA e indicadores operacionais de TI.
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6) ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.19-43853D) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1)
 
-[Documentação](#documentação) · [Contrato da API](docs/api.md) · [Deploy](docs/deployment.md)
+[Live Demo](https://ramon-itops.onrender.com) · [API Health](https://ramon-itops-api.onrender.com/health) · [Documentation](#documentação)
 
-Demonstração pública ainda não disponível. Quando publicada, os links Live Demo e API Health serão adicionados aqui.
+Demo compartilhada com dados temporários. Use somente dados fictícios; a primeira conexão pode demorar enquanto a API gratuita inicia.
 
 ## Funcionalidades
 
@@ -112,13 +112,12 @@ docs/                       Contratos, decisões e operação
 
 ## Roadmap
 
-- Publicar ambiente de demonstração isolado.
 - Autenticação e perfis de acesso.
 - Automação de verificações no GitHub Actions.
 - Notificações e avaliação do atendimento.
 
 ## Limitações
 
-Sem autenticação, autorização, notificações, calendário comercial ou snapshots históricos de indicadores. A demo pública preparada usa quotas, capacidade limitada e dados temporários por 48 horas; ainda aguarda provisionamento externo. Pode ocorrer cold start. CORS não substitui autenticação nem impede clientes externos.
+Sem autenticação, autorização, notificações, calendário comercial ou snapshots históricos de indicadores. A demo pública usa quotas, capacidade limitada e dados temporários por 48 horas, removidos na próxima limpeza. Pode ocorrer cold start. CORS não substitui autenticação nem impede clientes externos.
 
 Use somente dados fictícios. O histórico registra ator de demonstração, não identidade autenticada. Chamados legados têm cobertura parcial explícita e não entram nos indicadores que exigem cobertura integral. Sem licença definida.
