@@ -29,7 +29,7 @@ test("Service Desk com PostgreSQL real", async (t) => {
         migrate(connection.toString()),
         migrate(connection.toString()),
       ]);
-      assert.equal((await migrate(connection.toString(), true)).length, 6);
+      assert.equal((await migrate(connection.toString(), true)).length, 7);
       assert.equal(
         (await db.query("SELECT count(*) FROM categories")).rows[0].count,
         "7",
