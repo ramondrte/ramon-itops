@@ -73,3 +73,11 @@ O fluxo inicial é copiar .env.example apenas se .env não existir, executar npm
 Docker Desktop instalado e funcional. A validação utiliza projeto `ramon-itops-validation`, volume separado e PostgreSQL em 55432. O banco anterior em 5432 não foi migrado nem substituído. Para consultar: `POSTGRES_PORT=55432 docker compose -p ramon-itops-validation ps`. A aplicação de validação foi iniciada com API_PORT=3002, WEB_PORT=5174 e DATABASE_URL apontando para 55432. Os padrões 3001/5173 permanecem disponíveis no ambiente original.
 
 Após decidir pela migração definitiva do desenvolvimento para Docker, planeje exportação/importação dos dados fictícios e atualização de .env; não execute dois bancos na mesma porta nem remova o volume anterior.
+
+## Demo pública Render + Neon
+
+Consulte [deployment.md](deployment.md) para URLs, regiões e comandos implantados. O readiness público deve retornar 200 e database up; /health verifica apenas o processo. No Free, aguarde a inicialização antes de concluir indisponibilidade.
+
+429: respeitar Retry-After; não reenviar automaticamente escritas. Conferir quotas e [política demo](demo-environment.md). Se vários visitantes forem afetados indevidamente, revisar a cadeia de proxy; o valor implantado é TRUST_PROXY_HOPS=3 e depende do caminho validado. Não habilitar confiança irrestrita.
+
+Deploy/restart: preservar variáveis, usar o comando normal de início e confirmar readiness, chamado existente e timeline. Build e startup normais não aplicam migrations. Credenciais nunca devem aparecer em tickets, logs ou documentação. Sem cartão ou upgrade automático; esgotamento de quota pode interromper disponibilidade.

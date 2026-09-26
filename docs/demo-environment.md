@@ -2,7 +2,7 @@
 
 ## Estado e escopo
 
-Preparação local implementada. Não há recursos Render/Neon, URLs públicas ou credenciais provisionados nesta etapa. O template `deploy/render.demo.yaml` contém nomes propostos e campos a preencher; não é uma declaração de implantação concluída.
+Demo implantada no Render com PostgreSQL Neon separado do desenvolvimento. URLs, regiões, configuração e autorizações estão em [deployment.md](deployment.md). O template `deploy/render.demo.yaml` é referência para recriação; segredos não são versionados.
 
 A demo é compartilhada e não tem identidade autenticada. Visitantes podem executar o Service Desk, inclusive resolver/reabrir chamados, e enxergar o histórico dos demais. Técnicos e ator são fictícios. Não inserir dados pessoais, corporativos ou confidenciais. Autenticação/RBAC permanecem no roadmap.
 
@@ -25,7 +25,7 @@ IPs não são gravados em texto no PostgreSQL: chaves usam HMAC-SHA256 com DEMO_
 
 ## Proxy e origem
 
-TRUST_PROXY_HOPS começa em 0, ignorando cabeçalhos encaminhados. Antes de liberar a demo, validar a cadeia real do Render e fixar o número exato de proxies confiáveis. Não usar trustProxy=true nem o primeiro valor X-Forwarded-For indiscriminadamente. Testar cabeçalho forjado e dois clientes distintos no ambiente real; se o caminho variar, substituir a política por lista de proxies confiáveis validada antes da abertura.
+TRUST_PROXY_HOPS permanece 0 por padrão local. Na implantação Render, usa 3 após diagnóstico da cadeia real e teste de cabeçalho forjado. Não usar trustProxy=true nem o primeiro valor X-Forwarded-For indiscriminadamente. Testar cabeçalho forjado e dois clientes distintos no ambiente real; se o caminho variar, substituir a política por lista de proxies confiáveis validada antes da abertura.
 
 CORS usa origens exatas e escritas com Origin não autorizado recebem 403 no modo demo. Ausência de Origin não autentica ninguém: clientes fora do navegador continuam sujeitos às quotas. Não há promessa de proteção contra DDoS ou identidade por pessoa; redes NAT compartilham quotas.
 
@@ -33,7 +33,7 @@ CORS usa origens exatas e escritas com Origin não autorizado recebem 403 no mod
 
 A migration 007 cria apenas controles inertes: demo_environment, demo_tickets e demo_rate_windows. Não marca nem remove chamados existentes. Migrations anteriores são imutáveis.
 
-O banco Neon deverá ser novo e exclusivo. Após migrations e build, configurar NODE_ENV=production, DEMO_MODE=true, UUID exclusivo em DEMO_DATABASE_ID e segredo aleatório de no mínimo 32 caracteres. Executar explicitamente:
+O banco Neon implantado é novo e exclusivo. Em uma nova implantação, Após migrations e build, configurar NODE_ENV=production, DEMO_MODE=true, UUID exclusivo em DEMO_DATABASE_ID e segredo aleatório de no mínimo 32 caracteres. Executar explicitamente:
 
 ```sh
 npm run demo:prepare -- --confirm-empty-demo-database
@@ -55,7 +55,7 @@ Verificação no startup e no tráfego útil, limitada a uma vez por 15 minutos,
 
 Helmet adiciona headers da API; CSP restritiva para respostas JSON, proteção contra framing e sniffing. Body limitado; erros 400/413/415/429 tratados sem stack. Logs de aplicação não incluem body, cabeçalhos, IP, query string, hostname ou credenciais; eventos registram operações e IDs. O provedor pode manter logs próprios que exigem revisão de retenção.
 
-Frontend estático: headers no template e CSP a preencher com a origem HTTPS real da API. Política sugerida: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ORIGEM_REAL_DA_API; img-src 'self' data:; base-uri 'self'; frame-ancestors 'none'; form-action 'self'. Estilos inline são necessários às barras atuais dos gráficos. Não colar placeholder como política final.
+Frontend estático: headers aplicados no Render e CSP usando https://ramon-itops-api.onrender.com. Para recriação, preencher o template com a origem HTTPS real da API. Política sugerida: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ORIGEM_REAL_DA_API; img-src 'self' data:; base-uri 'self'; frame-ancestors 'none'; form-action 'self'. Estilos inline são necessários às barras atuais dos gráficos. Não colar placeholder como política final.
 
 ## Cold start
 
@@ -65,4 +65,4 @@ No modo público, timeout de rede de 90s por tentativa; leituras transitórias p
 
 Em abuso persistente, suspender a demo pelo painel e investigar quotas; não aumentar limites automaticamente. Em falha de banco/limpeza, escritas falham sem ignorar proteção. Verificar secrets e identificação, status das migrations e readiness. Não habilitar limpeza em banco real para corrigir falta de espaço. Ao desativar a demo, desabilitar também a limpeza e revisar qualquer exposição sem autenticação.
 
-A exclusão de dados demo expirados é intencional e não fornece histórico permanente. Não importar dados reais. Deploy público, proxy real, TLS Neon e persistência entre deploys ainda precisam ser validados após autorização externa.
+A exclusão de dados demo expirados é intencional e não fornece histórico permanente. Não importar dados reais. Deploy público, TLS Neon, proxy e persistência após redeploy foram exercitados; resultados e limites estão em [validation.md](validation.md).
