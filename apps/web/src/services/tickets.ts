@@ -1,3 +1,4 @@
+import { apiBaseUrl } from "./environment";
 import type { SlaView } from "./sla";
 import { useEffect, useState } from "react";
 export const priorityLabels = {
@@ -73,7 +74,7 @@ export async function api<T>(
 ): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`/api${path}`, {
+    response = await fetch(`${apiBaseUrl}${path}`, {
       ...options,
       headers: { "Content-Type": "application/json", ...options.headers },
       signal: options.signal ?? AbortSignal.timeout(10000),
