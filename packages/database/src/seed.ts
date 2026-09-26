@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 import { createDatabase } from "./index.js";
-config({ path: new URL("../../../.env", import.meta.url), quiet: true });
+if (process.env.NODE_ENV !== "production")
+  config({ path: new URL("../../../.env", import.meta.url), quiet: true });
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL obrigatória");
 const db = createDatabase(process.env.DATABASE_URL);
 try {
