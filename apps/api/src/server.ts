@@ -1,16 +1,16 @@
+import { readConfig } from "./config.js";
 import { config } from "dotenv";
 import { createDatabase } from "@ramon-itops/database";
 import { buildApp } from "./app.js";
-config({ path: new URL("../../../.env", import.meta.url), quiet: true });
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString)
-  throw new Error(
-    "DATABASE_URL obrigatória. Copie .env.example para .env na raiz.",
-  );
-const port = Number(process.env.API_PORT ?? 3001);
-if (!Number.isInteger(port) || port < 1 || port > 65535)
-  throw new Error("API_PORT inválida");
-const app = buildApp(createDatabase(connectionString));
+if (process.env.NODE_ENV !== "production")
+  config({ path: new URL("../../../.env", import.meta.url), quiet: true });
+const settings = readConfig();
+const app = buildApp(
+  createDatabase(settings.databaseUrl),
+  true,
+  undefined,
+  settings.corsOrigins,
+);
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
     void app.close().catch(() => {
@@ -19,7 +19,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   });
 }
 try {
-  await app.listen({ port, host: process.env.API_HOST ?? "127.0.0.1" });
+  await app.listen({ port: settings.port, host: settings.host });
 } catch {
   app.log.error("api_start_failed");
   await app.close();

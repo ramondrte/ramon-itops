@@ -1,3 +1,4 @@
+import cors from "@fastify/cors";
 import { systemClock, type Clock } from "./modules/sla/sla.engine.js";
 import { registerMetrics } from "./modules/metrics/metrics.routes.js";
 import type { Database as TicketDatabase } from "@ramon-itops/database";
@@ -12,11 +13,20 @@ export function buildApp(
   database: Database | TicketDatabase,
   logger = true,
   clock: Clock = systemClock,
+  corsOrigins: string[] = [],
 ) {
   const app = Fastify({
     logger,
     ajv: { customOptions: { removeAdditional: false, coerceTypes: false } },
   });
+  if (corsOrigins.length)
+    app.register(cors, {
+      origin: corsOrigins,
+      methods: ["GET", "HEAD", "POST", "PATCH", "OPTIONS"],
+      allowedHeaders: ["Content-Type"],
+      exposedHeaders: ["Location"],
+      credentials: false,
+    });
   app.get("/health", async () => ({
     service: "ramon-itops-api",
     status: "ok",
