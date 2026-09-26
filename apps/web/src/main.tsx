@@ -10,3 +10,5 @@ createRoot(document.getElementById("root")!).render(
 );
 
 import "./governance.css";
+
+import "./navigation.css";

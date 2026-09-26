@@ -1,4 +1,5 @@
-import { BrowserRouter, Link, NavLink, Route, Routes } from "react-router";
+import { Sidebar } from "./components/Sidebar";
+import { BrowserRouter, Link, Route, Routes } from "react-router";
 import { OverviewPage } from "./pages/OverviewPage";
 import { TicketListPage } from "./pages/TicketListPage";
 import { TicketCreatePage } from "./pages/TicketCreatePage";
@@ -7,35 +8,13 @@ export function App() {
   return (
     <BrowserRouter useTransitions={false}>
       <div className="layout">
-        <aside className="sidebar">
-          <Link className="brand" to="/">
-            <span className="brand-icon">R</span> Ramon <b>ITOps</b>
-          </Link>
-          <p className="eyebrow">WORKSPACE OPERACIONAL</p>
-          <nav>
-            <NavLink to="/" end>
-              ◈ Dashboard
-            </NavLink>
-            <NavLink to="/tickets">≡ Fila de chamados</NavLink>
-            <a
-              href="https://github.com/ramondrte/ramon-itops"
-              target="_blank"
-              rel="noreferrer"
-            >
-              ↗ Documentação
-            </a>
-          </nav>
-          <div className="aside-bottom">
-            <span className="dot" /> Ambiente de demonstração
-            <small>Portfólio · Fase 3</small>
-          </div>
-        </aside>
+        <Sidebar />
         <main>
           <header>
             <span>
               Operações de TI <span className="separator">/</span> Service Desk
             </span>
-            <span className="badge">FASE 03 · GOVERNANÇA</span>
+            <span className="badge">DEMONSTRAÇÃO</span>
           </header>
           <Routes>
             <Route path="/" element={<OverviewPage />} />
