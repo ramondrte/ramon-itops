@@ -37,8 +37,16 @@ O seed de técnicos fictícios é separado e repetível. Não contém alteraçõ
 
 GET /health continua independente do banco. GET /health/ready executa SELECT 1 e retorna 503 em falha. O health check do Compose verifica disponibilidade do servidor PostgreSQL; readiness não substitui a execução das migrations.
 
-API, Vite e banco vinculados ao loopback. Sem autenticação, autorização, notificações ou SLA. A API não deve ser exposta em produção nessa condição. Logs registram IDs e operações, sem copiar descrição ou solicitante.
+API, Vite e banco vinculados ao loopback. Sem autenticação, autorização ou notificações. A API não deve ser exposta em produção nessa condição. Logs registram IDs e operações, sem copiar descrição ou solicitante.
 
 ## Referência da dependência adicionada
 
 [React Router: navegação declarativa](https://reactrouter.com/start/declarative/routing).
+
+## Fase 3 — SLA e governança
+
+O monorepo e SQL direto foram preservados, sem novas dependências. `modules/sla` separa motor puro com relógio injetável e persistência de ciclos/pausas; `modules/metrics` concentra a agregação SQL. Rotas continuam validando o contrato, sem regras temporais no frontend.
+
+`tickets → ticket_sla_cycles → ticket_sla_pauses`. Um ciclo ativo por chamado e uma pausa ativa por ciclo são garantidos por índices únicos parciais. Chamado, ciclo, pausa e histórico são gravados na mesma transação sob bloqueio da linha e conferência de versão. Leituras de detalhe/fila usam REPEATABLE READ; métricas são uma única consulta SQL consistente.
+
+004 cria ciclos/pausas; 005 inicia acompanhamento dos legados ativos no timestamp real da migration; 006 adiciona índices das consultas de indicadores. Prazo, consumo corrente e percentuais são derivados; somente consumo e resultado encerrados são congelados para auditoria. Não há cron, timer persistente ou snapshot histórico de indicadores. Ver [política e fórmulas](sla.md).

@@ -1,3 +1,21 @@
+# Validação da Fase 3 — 25/09/2026 (horário local)
+
+Ambiente preservado: PostgreSQL 17.6 real, Node.js 20.20.2, npm 10.8.2, macOS ARM64. Sem novas dependências de aplicação.
+
+- 6 testes unitários: saúde, orçamentos, crítico, limites exatos, pausa, violação pausada e congelamento/reabertura.
+- 14 testes de integração reportados pelo runner (inclui o agrupador Service Desk): regressões da Fase 2 e cinco cenários amplos de SLA/indicadores. Todos passaram.
+- Relógio injetável, sem esperas reais: 1h30 consumida + 3h pausada → 2h30 restante; resolução no limite; orçamento alterado sem reset; violação anterior à pausa; resolução pausada; reabertura com ciclo anterior preservado.
+- Indicadores SQL testados com valores exatos, janelas 7/30 dias/total, limites inclusivos, backlog antigo, nulos sem amostra e exclusão de legados.
+- Migration de legados testada a partir do schema da Fase 2: ativos parciais e resolvidos sem retroatividade, inclusive após reabertura.
+- Concorrência 200/409 e rollback de chamado/SLA/histórico; criação revertida sem ciclo órfão.
+- Nova conexão e nova instância da API recuperam o SLA persistido. Reinício real do PostgreSQL local com chamado em Pendente confirmou igualdade de consumed_ms, remaining_ms, paused_at e cycle_number; recuperação sem reiniciar API.
+- Navegador: dashboard com contagens reais e ausência de amostra, gráficos com população explícita; fila e detalhe mostram timestamp real do legado e cobertura parcial; pausa salva pela interface mostrou saldo congelado e histórico.
+- Lint, typecheck, testes unitários, integração e build executados antes da publicação.
+
+Docker continua indisponível: não foi validada a execução específica do container. Os testes usam PostgreSQL real em schema isolado de banco _test. Demonstrações locais utilizam somente dados fictícios; cenários de violação com timestamps controlados não alimentam o dashboard de demonstração.
+
+---
+
 # Validação da Fase 2 — 25/09/2026
 
 Ambiente: macOS ARM64, Node.js 20.20.2, npm 10.8.2 e PostgreSQL 17.6 real. Node.js 22 continua sendo a versão recomendada do projeto.

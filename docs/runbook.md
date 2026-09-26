@@ -50,3 +50,14 @@ Criar banco dedicado ramon_itops_test com createdb (comando no README). Definir 
 Ctrl+C nas aplicações e npm run db:down. Dados permanecem no volume. Não usar remoção de volumes como procedimento de diagnóstico.
 
 Backup/restauração, autenticação, autorização e implantação de produção ainda precisam de planejamento.
+
+## Implantação da Fase 3
+
+1. Faça backup do banco e interrompa a API antes de aplicar as migrations 004–006; a migration 005 marca o início real do acompanhamento legado e bloqueia escritas concorrentes em tickets durante sua execução.
+2. Execute `npm run db:migrate` e `npm run db:migrate:status`; confirme seis migrations aplicadas, sem editar os arquivos antigos.
+3. Inicie a API atualizada e confira `/health`, `/health/ready`, um chamado legado e `/metrics/overview?period=all`.
+4. Confirme cobertura parcial e timestamp do legado ativo, ausência de SLA fictício nos já resolvidos e exclusões nos indicadores.
+
+Para exercitar persistência, coloque um chamado fictício em Pendente, anote `consumed_ms`, `remaining_ms` e `paused_at`, reinicie API/banco e consulte novamente. O saldo deve permanecer congelado. Retome e confirme novo prazo. Não remova volumes. Indisponibilidade não pausa chamados em atendimento; apenas Pendente pausa SLA. Mantenha relógio do servidor sincronizado.
+
+Em falha, não reative código antigo para escrever no schema já migrado: ele não manteria os ciclos. Preserve backup e utilize correção versionada; não há downgrade automático/destrutivo. Build e todos os testes devem preceder publicação.

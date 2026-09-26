@@ -44,3 +44,9 @@ Ator: “Operador de demonstração”, identidade não autenticada. Responsáve
 ## Fora do escopo
 
 SLA, notificações, autenticação, anexos, comentários livres e cadastro administrativo de técnicos. Não há alegação de conformidade formal com ITIL.
+
+## SLA e interpretação operacional
+
+As regras de incidente, solicitação e transições permanecem. A resolução agora congela o ciclo; a reabertura inicia outro. Pendente pausa SLA e exige justificativa. Trocar prioridade conserva consumo efetivo. Histórico registra alterações de prazo/saldo junto da mudança de atendimento.
+
+Chamados legados mostram “SLA acompanhado desde … — cobertura parcial”; não são comparáveis a atendimento integral sob SLA. O dashboard separa demanda criada no período, backlog atual e resoluções elegíveis. Investigue violações, concentração de demanda e tempos elevados; não conclua crescimento ou tendência sem comparação temporal adequada. A média efetiva mede tempo de relógio elegível, não esforço do técnico. Veja [SLA](sla.md).
