@@ -1,3 +1,4 @@
+import { demoMode } from "../services/environment";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { api, date, priorityLabels, statusLabels } from "../services/tickets";
@@ -73,7 +74,9 @@ export function OverviewPage() {
       )}
       {loading ? (
         <p className="empty-state" role="status">
-          Consultando indicadores no PostgreSQL…
+          {demoMode
+            ? "Serviço iniciando. A primeira conexão pode levar alguns segundos."
+            : "Consultando indicadores no PostgreSQL…"}
         </p>
       ) : (
         data && (

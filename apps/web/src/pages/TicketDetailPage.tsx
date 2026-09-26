@@ -1,3 +1,4 @@
+import { demoMode } from "../services/environment";
 import { TicketSla } from "../components/tickets/TicketSla";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation, useParams } from "react-router";
@@ -55,7 +56,9 @@ export function TicketDetailPage() {
       </Link>
       {loading ? (
         <p role="status" className="empty-state">
-          Carregando chamado…
+          {demoMode
+            ? "Serviço iniciando. A primeira conexão pode levar alguns segundos."
+            : "Carregando chamado…"}
         </p>
       ) : error ? (
         <ErrorNotice message={error} retry={() => setAttempt((a) => a + 1)} />

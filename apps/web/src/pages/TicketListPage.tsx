@@ -1,3 +1,4 @@
+import { demoMode } from "../services/environment";
 import { SlaBadge, Coverage } from "../components/tickets/TicketSla";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -122,7 +123,9 @@ export function TicketListPage() {
         )}
         {loading ? (
           <p className="empty-state" role="status">
-            Carregando chamados…
+            {demoMode
+              ? "Serviço iniciando. A primeira conexão pode levar alguns segundos."
+              : "Carregando chamados…"}
           </p>
         ) : error ? (
           <ErrorNotice message={error} retry={() => setAttempt((a) => a + 1)} />
