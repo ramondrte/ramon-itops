@@ -1,3 +1,22 @@
+# Preparação da demo pública — 26/09/2026 UTC
+
+Preparação local concluída; nenhum recurso Render/Neon foi criado. Não há URLs públicas validadas nesta etapa.
+
+- Lint, typecheck, 11 testes unitários/HTTP, build e 20 resultados de integração (inclui agrupador) passaram.
+- PostgreSQL real no container de validação, porta 55432; testes em schemas isolados do banco de testes. Migration 007 aplicada somente nesses schemas nesta etapa.
+- Limites por IP/rede IPv6, janelas persistidas, teto global, capacidade concorrente, HTTP 429 e Retry-After verificados.
+- Headers, body size, erros seguros, CORS, spoofing de IP com proxy desabilitado e com um salto controlado, health/readiness verificados.
+- Limpeza seletiva após 48 horas, limite exato, rollback, vínculo incorreto de banco e preservação dos dados não marcados testados com relógio controlável. Nenhuma limpeza executada nos bancos de desenvolvimento.
+- Fluxo demo: criação, prioridade, atendimento, pendência/retomada, resolução/reabertura, SLA, timeline, filtros e indicadores. Proteções persistidas recuperadas em nova conexão.
+- Frontend: teste de retomada de leitura após falha temporária, escrita sem repetição automática e mensagem de 429. Aviso visual e detalhe com SLA conferidos no navegador local.
+- Template Render analisado como YAML. Migrations antigas e motor de SLA preservados; hooks da demo participam da transação de criação existente.
+
+## Validação externa ainda pendente
+
+Após autorização: TLS Neon, migrations/seed/vínculo no banco dedicado, configuração real de proxy/IP, CSP com origem definitiva, CORS entre serviços, refresh das rotas na hospedagem, reinício/redeploy e URLs HTTPS. Os testes locais não substituem essas verificações. A limpeza exige produção, modo demo, habilitação explícita e vínculo com banco dedicado; permanece desligada no desenvolvimento.
+
+---
+
 # Validação de polimento e ambiente — 26/09/2026 UTC
 
 ## Estado atual

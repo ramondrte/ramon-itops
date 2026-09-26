@@ -90,3 +90,7 @@ Percentuais/médias sem amostra são null; contagens ausentes são zero. Distrib
 ## Hospedagem
 
 Endpoints permanecem iguais. Em produção, a URL base é a API HTTPS hospedada, configurada no frontend por VITE_API_BASE_URL. CORS permite apenas origens exatas em CORS_ORIGINS, métodos GET/HEAD/POST/PATCH/OPTIONS e Content-Type. Não usa cookies nem substitui autorização.
+
+## Proteções da demo
+
+Em DEMO_MODE, escritas e criação têm quotas persistentes e podem retornar 429 com Retry-After. Capacidade esgotada usa demo_capacity_reached. Body maior que 128 KiB retorna 413; tipo não suportado retorna 415. Origin não autorizado em escrita retorna 403. Endpoints existentes e controle de versão permanecem. Detalhe de chamado expirado retorna 404. Ver [política de demonstração](demo-environment.md).

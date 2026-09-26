@@ -2,7 +2,7 @@
 
 ## Estado
 
-Preparação de configuração concluída; aplicação pública ainda não provisionada. Não há conta criada, OAuth autorizado, assinatura ou recurso pago. Não use túneis para o computador, IP residencial ou banco de desenvolvimento.
+Preparação de configuração e proteções de demo concluída; aplicação pública ainda não provisionada. Não há conta criada, OAuth autorizado, assinatura ou recurso pago. Não use túneis para o computador, IP residencial ou banco de desenvolvimento.
 
 ## Comparação de hospedagem
 
@@ -49,8 +49,21 @@ Frontend padrão usa `/api` no mesmo domínio. Em desenvolvimento/preview isso �
 6. Validar origem autorizada/preflight PATCH, rejeição de leitura cross-origin não autorizada, criação, SLA, filtros, persistência após redeploy e logs sem secrets.
 7. Inserir URLs reais de Live Demo e API Health no README somente após validação pública.
 
-## Decisões ainda necessárias
+## Sequência para Render + Neon (pendente de autorização)
 
-Sem autenticação, qualquer cliente pode criar/alterar chamados. CORS limita leitura pelo navegador, não autentica e não impede scripts externos. Antes de abertura pública, escolher demo somente leitura ou escrita anônima controlada com limitação de requisições, política de dados e limpeza. Nenhuma dessas regras foi adicionada neste polimento para preservar o escopo funcional.
+1. Autorizar contas pessoais Render/Neon e, se escolhido, GitHub App/OAuth Render restrito a ramon-itops. Conferir permissões reais na tela; não ampliar a outros repositórios. Sem cartão, upgrade ou cron pago.
+2. Criar projeto Neon Free separado; manter credenciais somente no gerenciador de secrets. Preferir regiões próximas da API. DATABASE_URL de runtime e conexão direta para migrations, ambas com TLS verificado.
+3. Em sessão administrativa controlada, executar npm ci, npm run build, npm run db:migrate, npm run db:migrate:status e npm run db:seed:demo no banco remoto. Executar demo:prepare com UUID exclusivo e confirmação, conforme [política demo](demo-environment.md). Não usar startup de API para migrations. Free Render não dispõe de shell/one-off/pre-deploy como planos pagos; a execução administrativa pode partir da estação com acesso TLS ao Neon, sem expor a estação nem exigir que continue ligada.
+4. Criar os serviços a partir de deploy/render.demo.yaml, conferindo nomes e plano Free. Preencher origens/URLs reais após reservar serviços; manter deploy automático desabilitado até validar o fluxo de release. O arquivo não cria banco Render ou cron.
+5. API: NODE_ENV=production, API_HOST=0.0.0.0, PORT fornecida pelo Render, CORS_ORIGINS exata, DATABASE_URL, DEMO_MODE=true, DEMO_CLEANUP_ENABLED=true, DEMO_DATABASE_ID e DEMO_IP_HASH_SECRET. Health check /health/ready.
+6. Frontend: VITE_API_BASE_URL real, VITE_DEMO_MODE=true; rewrite /* → /index.html. Preencher CSP com origem real da API. Variáveis VITE_ não são secrets.
+7. Validar a cadeia de proxy antes de definir TRUST_PROXY_HOPS; provar que IP forjado não evade limite e clientes distintos não compartilham indevidamente o mesmo IP do proxy. Não abrir divulgação pública antes dessa verificação.
+8. Exercitar criação, edição, pendência, resolução/reabertura, SLA/timeline, dashboard, 429, CORS, navegação direta/refresh, readiness e persistência após redeploy. Só então adicionar links reais Live Demo/API Health no README.
 
-Autorização de contas, OAuth, termos e cobrança permanece pendente. Nenhuma mudança em portas residenciais, encaminhamento de rede ou banco local é necessária.
+## Custos e autorizações
+
+Render Static Site e API Free têm quotas; a API dorme após 15 minutos e pode levar cerca de um minuto para acordar. Sem forma de pagamento, esgotamento de determinadas quotas suspende recursos/builds; com cartão, excedentes podem gerar cobrança. Não cadastrar cartão nesta etapa. Neon Free tem quotas de armazenamento/compute; não ativar upgrade. Plano gratuito não garante disponibilidade contínua.
+
+Confirmar separadamente criação/login de conta, termos, acesso GitHub e criação dos três recursos gratuitos. Qualquer pedido de cartão, plano pago ou permissão adicional interrompe o fluxo. Não há URLs públicas confirmadas neste documento.
+
+Documentação oficial: [Render Free](https://render.com/docs/free), [conexão Git](https://render.com/docs/git-provider), [deploys](https://render.com/docs/deploys), [rewrites](https://render.com/docs/redirects-rewrites), [Neon planos](https://neon.com/docs/introduction/plans).
