@@ -1,3 +1,4 @@
+import type { SlaView } from "./sla";
 import { useEffect, useState } from "react";
 export const priorityLabels = {
   low: "Baixa",
@@ -19,6 +20,7 @@ export interface Option {
   name: string;
 }
 export interface Ticket {
+  sla: SlaView;
   id: string;
   number: string;
   title: string;
@@ -48,8 +50,10 @@ export interface HistoryEvent {
 }
 export interface Detail extends Ticket {
   history: HistoryEvent[];
+  sla_cycles: SlaView[];
 }
 export interface TicketList {
+  calculated_at: string;
   items: Ticket[];
   total: number;
   page: number;
