@@ -1,3 +1,4 @@
+import { TicketSla } from "../components/tickets/TicketSla";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import {
@@ -117,6 +118,7 @@ export function TicketDetailPage() {
                     </div>
                   )}
                 </section>
+                <TicketSla ticket={ticket} />
                 <TicketTimeline events={ticket.history} />
               </div>
               <TicketEditor

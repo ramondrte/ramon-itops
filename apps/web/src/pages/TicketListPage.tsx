@@ -1,3 +1,4 @@
+import { SlaBadge, Coverage } from "../components/tickets/TicketSla";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
@@ -39,6 +40,12 @@ export function TicketListPage() {
       active = false;
     };
   }, [query, attempt]);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!document.hidden) setAttempt((a) => a + 1);
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
   function filter(key: string, value: string) {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
@@ -126,7 +133,10 @@ export function TicketListPage() {
                 <strong>
                   {data.total} chamado{data.total === 1 ? "" : "s"}
                 </strong>
-                <span>Mais recentes primeiro</span>
+                <span>
+                  Mais recentes primeiro · SLA calculado em{" "}
+                  {date(data.calculated_at)}
+                </span>
               </div>
               {data.items.length ? (
                 <div className="table-scroll">
@@ -137,6 +147,7 @@ export function TicketListPage() {
                         <th>Categoria</th>
                         <th>Prioridade</th>
                         <th>Status</th>
+                        <th>SLA</th>
                         <th>Responsável</th>
                         <th>Abertura</th>
                       </tr>
@@ -160,6 +171,10 @@ export function TicketListPage() {
                           </td>
                           <td>
                             <StatusBadge value={ticket.status} />
+                          </td>
+                          <td className="sla-cell">
+                            <SlaBadge sla={ticket.sla} />
+                            <Coverage sla={ticket.sla} />
                           </td>
                           <td>
                             {ticket.technician_name ?? (
