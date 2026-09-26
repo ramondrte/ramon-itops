@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile, rm, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
@@ -29,18 +29,14 @@ test("Service Desk com PostgreSQL real", async (t) => {
         migrate(connection.toString()),
         migrate(connection.toString()),
       ]);
-      assert.equal((await migrate(connection.toString(), true)).length, 3);
+      assert.equal((await migrate(connection.toString(), true)).length, 6);
       assert.equal(
         (await db.query("SELECT count(*) FROM categories")).rows[0].count,
         "7",
       );
       const dir = await mkdtemp(join(tmpdir(), "itops-migrations-"));
       try {
-        for (const name of [
-          "001_create_service_desk.sql",
-          "002_create_ticket_history.sql",
-          "003_seed_categories.sql",
-        ]) {
+        for (const name of await readdir(new URL('../../../packages/database/migrations/', import.meta.url))) {
           const sql = await readFile(
             new URL(
               `../../../packages/database/migrations/${name}`,
@@ -185,7 +181,8 @@ test("Service Desk com PostgreSQL real", async (t) => {
         });
         assert.equal(response.statusCode, 200);
         current = response.json();
-        assert.equal(Object.keys(current.history.at(-1).changes).length, 2);
+        assert.ok(current.history.at(-1).changes.category_name);
+      assert.ok(current.history.at(-1).changes.priority);
       },
     );
     await t.test(
