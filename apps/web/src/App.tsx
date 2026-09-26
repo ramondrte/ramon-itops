@@ -14,7 +14,7 @@ export function App() {
           <p className="eyebrow">WORKSPACE OPERACIONAL</p>
           <nav>
             <NavLink to="/" end>
-              ◈ Visão operacional
+              ◈ Dashboard
             </NavLink>
             <NavLink to="/tickets">≡ Fila de chamados</NavLink>
             <a
@@ -27,7 +27,7 @@ export function App() {
           </nav>
           <div className="aside-bottom">
             <span className="dot" /> Ambiente de demonstração
-            <small>Portfólio · Fase 2</small>
+            <small>Portfólio · Fase 3</small>
           </div>
         </aside>
         <main>
@@ -35,7 +35,7 @@ export function App() {
             <span>
               Operações de TI <span className="separator">/</span> Service Desk
             </span>
-            <span className="badge">FASE 02 · ATENDIMENTO</span>
+            <span className="badge">FASE 03 · GOVERNANÇA</span>
           </header>
           <Routes>
             <Route path="/" element={<OverviewPage />} />

@@ -1,0 +1,249 @@
+.dashboard-controls {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+.dashboard-controls label {
+  min-width: 160px;
+}
+.dashboard-controls button {
+  min-height: 40px;
+}
+.dashboard-timestamp {
+  font-size: 10px;
+  color: #708493;
+  margin: 0 0 22px;
+}
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0 0 24px;
+}
+.dashboard-card {
+  min-height: 147px;
+}
+.dashboard-card strong {
+  color: #213f4c;
+  font-size: 32px;
+  margin: 18px 0 8px;
+}
+.dashboard-card p {
+  font-size: 11px;
+  line-height: 1.7;
+}
+.dashboard-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 28px 0 18px;
+}
+.dashboard-section-heading span {
+  font-size: 11px;
+  color: #637d8b;
+}
+.coverage-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 35px;
+  margin-bottom: 24px;
+  background: #f8fbfa;
+}
+.coverage-summary strong {
+  display: block;
+  font-size: 24px;
+  color: #21765f;
+  margin-top: 12px;
+}
+.coverage-summary p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #647e89;
+}
+.coverage-summary h3 {
+  margin-top: 18px;
+}
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.distribution-chart h2 {
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 350px;
+}
+.distribution-chart.wide {
+  grid-column: 1/-1;
+}
+.distribution-chart ul {
+  padding: 0;
+  list-style: none;
+  margin: 24px 0 0;
+}
+.distribution-chart li {
+  margin-bottom: 18px;
+}
+.distribution-chart li > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 11px;
+  margin-bottom: 9px;
+  color: #546c7b;
+}
+.chart-track {
+  height: 8px;
+  border-radius: 5px;
+  background: #edf1f3;
+  overflow: hidden;
+}
+.chart-track > div {
+  height: 100%;
+  border-radius: 5px;
+  background: #3e8b79;
+}
+.distribution-chart.wide li {
+  max-width: 900px;
+}
+.scope-note {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #687e8b;
+  margin: 22px 0;
+}
+.dashboard-health {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 23px;
+  margin-top: 24px;
+}
+.dashboard-health h2 {
+  font-size: 14px;
+  margin-right: auto;
+}
+.dashboard-health span {
+  font-size: 11px;
+  color: #657c89;
+}
+.sla-panel {
+  margin-top: 22px;
+}
+.sla-badge {
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.6;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: #ecf4f1;
+  color: #2b705a;
+}
+.sla-near_due {
+  background: #fcf3e2;
+  color: #906322;
+}
+.sla-breached {
+  background: #faebe8;
+  color: #a04235;
+}
+.sla-paused {
+  background: #edf0f6;
+  color: #657089;
+}
+.sla-untracked {
+  background: #f0f2f4;
+  color: #76838d;
+}
+.coverage-note {
+  display: block;
+  font-size: 9px;
+  color: #71858f;
+  line-height: 1.7;
+  margin-top: 5px;
+}
+.coverage-partial {
+  color: #87682b;
+}
+.sla-cell {
+  min-width: 180px;
+  max-width: 240px;
+}
+.sla-panel .ticket-metadata {
+  margin-top: 18px;
+}
+.sla-cycles {
+  border-top: 1px solid #e1e8eb;
+  padding-top: 17px;
+  margin-top: 22px;
+}
+.sla-cycles summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #326b5b;
+}
+.sla-cycles article {
+  padding: 20px 0;
+  border-bottom: 1px solid #e6ecef;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.sla-cycles article strong {
+  font-size: 12px;
+}
+.sla-cycles article p,
+.sla-cycles li {
+  color: #637c88;
+}
+.sla-panel .caption {
+  line-height: 1.8;
+  margin-top: 18px;
+}
+@media (max-width: 1050px) {
+  .dashboard-cards {
+    gap: 12px;
+  }
+  .dashboard-card strong {
+    font-size: 25px;
+  }
+  .coverage-summary {
+    gap: 20px;
+  }
+}
+@media (max-width: 620px) {
+  .dashboard-cards,
+  .charts-grid,
+  .coverage-summary {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-card {
+    min-height: 120px;
+  }
+  .dashboard-section-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .dashboard-controls {
+    width: 100%;
+  }
+  .dashboard-controls label {
+    flex: 1;
+  }
+  .distribution-chart.wide {
+    grid-column: auto;
+  }
+  .dashboard-health {
+    gap: 15px;
+  }
+  .sla-panel .section-title {
+    align-items: start;
+    flex-direction: column;
+    gap: 15px;
+  }
+  .queue-summary {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
