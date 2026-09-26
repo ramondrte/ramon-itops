@@ -1,3 +1,4 @@
+import type { DemoService } from "../demo/demo.service.js";
 import { loadSla, openSla, updateSla } from "../sla/sla.service.js";
 import { systemClock, type Clock } from "../sla/sla.engine.js";
 import type { PoolClient } from "@ramon-itops/database";
@@ -32,6 +33,7 @@ export class TicketsService {
   constructor(
     public repository: TicketsRepository,
     public clock: Clock = systemClock,
+    private demo?: DemoService,
   ) {}
   private async decorate(ticket: Ticket, client: PoolClient, at: Date) {
     return {
@@ -84,6 +86,7 @@ export class TicketsService {
     requireText(input.description, 10, "Descrição");
     requireText(input.requester, 2, "Solicitante");
     return this.repository.db.transaction(async (client) => {
+      if (this.demo) await this.demo.beforeCreate(client);
       await this.validateReferences(
         input.category_id,
         input.technician_id,
@@ -91,6 +94,7 @@ export class TicketsService {
       );
       const at = this.clock();
       const ticket = await this.repository.insert(input, client, at);
+      if (this.demo) await this.demo.afterCreate(client, ticket.id);
       await openSla(client, ticket, at, "created");
       await this.repository.record(
         ticket.id,

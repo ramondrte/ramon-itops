@@ -1,3 +1,4 @@
+import type { DemoService } from "../demo/demo.service.js";
 import { systemClock, type Clock } from "../sla/sla.engine.js";
 import type { FastifyInstance } from "fastify";
 import type { Database } from "@ramon-itops/database";
@@ -14,9 +15,10 @@ export function registerTickets(
   app: FastifyInstance,
   db: Database,
   clock: Clock = systemClock,
+  demo?: DemoService,
 ) {
   const repository = new TicketsRepository(db, clock);
-  const service = new TicketsService(repository, clock);
+  const service = new TicketsService(repository, clock, demo);
   app.get(
     "/categories",
     async () =>
