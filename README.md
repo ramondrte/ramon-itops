@@ -106,6 +106,7 @@ docs/                       Contratos, decisões e operação
 - [API](docs/api.md)
 - [Runbook](docs/runbook.md)
 - [Ambientes e estratégia de deploy](docs/deployment.md)
+- [Proteções e política da demo pública](docs/demo-environment.md)
 - [Validação e limitações do ambiente](docs/validation.md)
 - [Regras de contribuição](AGENTS.md)
 
@@ -118,6 +119,6 @@ docs/                       Contratos, decisões e operação
 
 ## Limitações
 
-Sem autenticação, autorização, notificações, calendário comercial ou snapshots históricos de indicadores. CORS não controla acesso à API fora do navegador. A publicação aberta exige decidir como tratar escrita anônima e abuso, antes do deploy.
+Sem autenticação, autorização, notificações, calendário comercial ou snapshots históricos de indicadores. A demo pública preparada usa quotas, capacidade limitada e dados temporários por 48 horas; ainda aguarda provisionamento externo. Pode ocorrer cold start. CORS não substitui autenticação nem impede clientes externos.
 
 Use somente dados fictícios. O histórico registra ator de demonstração, não identidade autenticada. Chamados legados têm cobertura parcial explícita e não entram nos indicadores que exigem cobertura integral. Sem licença definida.
