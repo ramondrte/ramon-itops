@@ -6,6 +6,10 @@ import {
   type HistoryEvent,
 } from "../../services/tickets";
 const fieldLabels: Record<string, string> = {
+  sla: "Situação do SLA",
+  sla_budget: "Orçamento do SLA",
+  sla_balance: "Saldo do SLA",
+  sla_tracking: "Início do acompanhamento SLA",
   title: "Título",
   description: "Descrição",
   priority: "Prioridade",
