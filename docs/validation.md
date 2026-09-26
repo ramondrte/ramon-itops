@@ -1,3 +1,33 @@
+# Validação de polimento e ambiente — 26/09/2026 UTC
+
+## Estado atual
+
+Docker Desktop 4.92.0 instalado do DMG oficial Apple Silicon, assinatura verificada; Engine 29.8.0 e Compose 5.5.1 funcionais. A abertura reutilizou o estado existente do Docker e não apresentou senha, Touch ID ou aceite de termos. Nenhum container preexistente foi alterado.
+
+PostgreSQL 17.11 via postgres:17-alpine, projeto Compose ramon-itops-validation, porta 127.0.0.1:55432 e volume próprio. Banco anterior na porta 5432 preservado, assim como o .env local. A cópia de .env.example não foi executada sobre o arquivo existente; os valores da validação foram passados pelo ambiente.
+
+## Executado
+
+- npm ci: instalação reproduzível, audit sem vulnerabilidades reportadas.
+- npm run db:up com POSTGRES_PORT=55432 e COMPOSE_PROJECT_NAME=ramon-itops-validation: saudável.
+- db:migrate: seis migrations aplicadas; db:seed:demo: técnicos fictícios cadastrados.
+- npm run dev com API_PORT=3002, WEB_PORT=5174 e DATABASE_URL do container: frontend, proxy e API operantes; health/ready 200.
+- 8 testes unitários/HTTP, incluindo configuração de produção e preflight CORS PATCH com origem exata.
+- 14 resultados de integração no PostgreSQL do container (inclui agrupador), preservando testes funcionais existentes.
+- Restart do container, espera de health check e leitura do mesmo chamado fictício: histórico, consumo, saldo, pausa e ciclo idênticos. API recuperada sem reinício.
+- Lint, typecheck, build e git diff --check.
+- Navegador: sidebar compacta, status reais e atalho de SLA preservando filtro temporal; aplicação conectada ao container.
+
+Migrations existentes, motor de SLA, serviços/repositórios de negócio e testes funcionais não foram alterados. O novo teste trata somente configuração e CORS. .env e dados locais não foram publicados.
+
+## Limitações
+
+Não houve deploy público, conta, OAuth ou cobrança. TLS do banco remoto e integração com uma hospedagem serão validados quando o provedor for autorizado. Não foi adicionada autenticação ou limitação de escrita anônima. Node.js de execução local: 20.20.2; a documentação recomenda 22.
+
+As seções abaixo são registros históricos; a limitação de Docker relatada nelas foi resolvida nesta validação.
+
+---
+
 # Validação da Fase 3 — 25/09/2026 (horário local)
 
 Ambiente preservado: PostgreSQL 17.6 real, Node.js 20.20.2, npm 10.8.2, macOS ARM64. Sem novas dependências de aplicação.

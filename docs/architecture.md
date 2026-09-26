@@ -37,7 +37,7 @@ O seed de técnicos fictícios é separado e repetível. Não contém alteraçõ
 
 GET /health continua independente do banco. GET /health/ready executa SELECT 1 e retorna 503 em falha. O health check do Compose verifica disponibilidade do servidor PostgreSQL; readiness não substitui a execução das migrations.
 
-API, Vite e banco vinculados ao loopback. Sem autenticação, autorização ou notificações. A API não deve ser exposta em produção nessa condição. Logs registram IDs e operações, sem copiar descrição ou solicitante.
+No desenvolvimento, API, Vite e banco vinculados ao loopback. Sem autenticação, autorização ou notificações. A API não deve ser exposta em produção nessa condição. Logs registram IDs e operações, sem copiar descrição ou solicitante.
 
 ## Referência da dependência adicionada
 
@@ -50,3 +50,7 @@ O monorepo e SQL direto foram preservados, sem novas dependências. `modules/sla
 `tickets → ticket_sla_cycles → ticket_sla_pauses`. Um ciclo ativo por chamado e uma pausa ativa por ciclo são garantidos por índices únicos parciais. Chamado, ciclo, pausa e histórico são gravados na mesma transação sob bloqueio da linha e conferência de versão. Leituras de detalhe/fila usam REPEATABLE READ; métricas são uma única consulta SQL consistente.
 
 004 cria ciclos/pausas; 005 inicia acompanhamento dos legados ativos no timestamp real da migration; 006 adiciona índices das consultas de indicadores. Prazo, consumo corrente e percentuais são derivados; somente consumo e resultado encerrados são congelados para auditoria. Não há cron, timer persistente ou snapshot histórico de indicadores. Ver [política e fórmulas](sla.md).
+
+## Ambientes
+
+API usa PORT/API_PORT e bind explícito; produção exige banco remoto com TLS verificado e origens HTTPS exatas em CORS_ORIGINS. O frontend recebe somente VITE_API_BASE_URL no build. Migrations podem usar MIGRATION_DATABASE_URL direta, separada da conexão do pool. Produção não carrega .env local. Ver [estratégia de deploy](deployment.md).

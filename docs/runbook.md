@@ -61,3 +61,15 @@ Backup/restauração, autenticação, autorização e implantação de produçã
 Para exercitar persistência, coloque um chamado fictício em Pendente, anote `consumed_ms`, `remaining_ms` e `paused_at`, reinicie API/banco e consulte novamente. O saldo deve permanecer congelado. Retome e confirme novo prazo. Não remova volumes. Indisponibilidade não pausa chamados em atendimento; apenas Pendente pausa SLA. Mantenha relógio do servidor sincronizado.
 
 Em falha, não reative código antigo para escrever no schema já migrado: ele não manteria os ciclos. Preserve backup e utilize correção versionada; não há downgrade automático/destrutivo. Build e todos os testes devem preceder publicação.
+
+## Porta alternativa do PostgreSQL local
+
+Se já existir banco na porta 5432, mantenha-o preservado. Configure POSTGRES_PORT=55432 e DATABASE_URL com a mesma porta no .env antes de subir o Compose. Um projeto Compose separado (`docker compose -p ramon-itops-validation`) usa volume próprio. Não execute down -v em bancos que precise preservar.
+
+O fluxo inicial é copiar .env.example apenas se .env não existir, executar npm ci, db:up, db:migrate, db:seed:demo e npm run dev. Produção possui outro ciclo de configuração e migrations: [deployment.md](deployment.md).
+
+## Ambiente validado neste computador
+
+Docker Desktop instalado e funcional. A validação utiliza projeto `ramon-itops-validation`, volume separado e PostgreSQL em 55432. O banco anterior em 5432 não foi migrado nem substituído. Para consultar: `POSTGRES_PORT=55432 docker compose -p ramon-itops-validation ps`. A aplicação de validação foi iniciada com API_PORT=3002, WEB_PORT=5174 e DATABASE_URL apontando para 55432. Os padrões 3001/5173 permanecem disponíveis no ambiente original.
+
+Após decidir pela migração definitiva do desenvolvimento para Docker, planeje exportação/importação dos dados fictícios e atualização de .env; não execute dois bancos na mesma porta nem remova o volume anterior.

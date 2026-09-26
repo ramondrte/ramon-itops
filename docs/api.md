@@ -86,3 +86,7 @@ Resposta: `period`, `from` (null para total), `to`, `calculated_at`, `distributi
 | distributions | priority, category, status: arrays de {name, count} |
 
 Percentuais/médias sem amostra são null; contagens ausentes são zero. Distribuições consideram estado ATUAL dos chamados CRIADOS no período. Backlog/críticos abrangem todas as datas. Resoluções consideram última resolução dos atualmente resolvidos; cobertura parcial/ausente é excluída dos KPIs comparáveis. Fórmulas e limitações em [sla.md](sla.md).
+
+## Hospedagem
+
+Endpoints permanecem iguais. Em produção, a URL base é a API HTTPS hospedada, configurada no frontend por VITE_API_BASE_URL. CORS permite apenas origens exatas em CORS_ORIGINS, métodos GET/HEAD/POST/PATCH/OPTIONS e Content-Type. Não usa cookies nem substitui autorização.
