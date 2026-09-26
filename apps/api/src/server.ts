@@ -10,6 +10,7 @@ const app = buildApp(
   true,
   undefined,
   settings.corsOrigins,
+  { demo: settings.demo, trustProxyHops: settings.trustProxyHops },
 );
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {

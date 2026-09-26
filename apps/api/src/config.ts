@@ -43,7 +43,39 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
     )
       throw new Error("CORS_ORIGINS exige origens exatas, HTTPS em produção");
   }
+  const demoMode = env.DEMO_MODE === "true";
+  const cleanupEnabled = env.DEMO_CLEANUP_ENABLED === "true";
+  for (const key of ["DEMO_MODE", "DEMO_CLEANUP_ENABLED"] as const)
+    if (env[key] && !["true", "false"].includes(env[key]!))
+      throw new Error(`${key} inválido`);
+  if (cleanupEnabled && (!demoMode || !production))
+    throw new Error("Limpeza exige produção e DEMO_MODE=true");
+  const trustProxyHops = Number(env.TRUST_PROXY_HOPS ?? 0);
+  if (
+    !Number.isInteger(trustProxyHops) ||
+    trustProxyHops < 0 ||
+    trustProxyHops > 5
+  )
+    throw new Error("TRUST_PROXY_HOPS inválido");
+  if (
+    demoMode &&
+    (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      env.DEMO_DATABASE_ID ?? "",
+    ) ||
+      (env.DEMO_IP_HASH_SECRET?.length ?? 0) < 32)
+  )
+    throw new Error(
+      "Modo demo exige identificação do banco e segredo de hash com 32 caracteres ou mais",
+    );
   return {
+    demo: demoMode
+      ? {
+          databaseId: env.DEMO_DATABASE_ID!,
+          ipHashSecret: env.DEMO_IP_HASH_SECRET!,
+          cleanupEnabled,
+        }
+      : undefined,
+    trustProxyHops,
     port,
     host: env.API_HOST ?? (production ? "0.0.0.0" : "127.0.0.1"),
     databaseUrl,
