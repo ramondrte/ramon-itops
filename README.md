@@ -1,77 +1,103 @@
 # Ramon ITOps
 
-**Service Desk, SLA e governança de TI — projeto de portfólio em desenvolvimento.**
+**Service Desk e operações de TI — projeto de portfólio com foco em suporte, infraestrutura, NOC e governança.**
 
-O Ramon ITOps demonstra como práticas de suporte e operação podem orientar um produto: visibilidade de serviço, diagnóstico, rastreabilidade de atendimento e indicadores com regras documentadas.
+O Ramon ITOps organiza incidentes e solicitações com persistência em PostgreSQL, responsáveis e histórico de atendimento. A evolução é incremental: primeiro a saúde do ambiente, depois o processo de Service Desk e, futuramente, SLA e indicadores de governança.
 
-## Estado atual: Fase 1
+## Fase 2 — Service Desk
 
-- Frontend React/TypeScript com visão operacional e consulta real de saúde.
-- API Node.js/Fastify com logs estruturados e endpoints de disponibilidade e prontidão.
-- PostgreSQL local via Docker Compose, volume persistente e health check.
-- Teste de falha e recuperação de dependência, lint, tipos e build.
-- Runbook de diagnóstico e documentação de arquitetura.
+- Abertura de incidentes e solicitações com números INC/REQ.
+- Fila de chamados com filtros combinados por status, prioridade e categoria, além de paginação.
+- Detalhe com contexto, datas, técnico responsável e timeline de alterações.
+- Atendimento, pendência com motivo, resolução com solução e reabertura justificada.
+- Gravação transacional de chamado e histórico; proteção contra edição concorrente.
+- PostgreSQL com migrations SQL versionadas e verificação de checksum.
+- Health checks da Fase 1 preservados.
 
-Os indicadores de chamados são espaços reservados, sem dados simulados. Gestão de chamados e cálculo de SLA ainda não foram implementados. A interface não é um sistema de monitoramento contínuo: consulta ao abrir e ao atualizar manualmente.
+Incidente representa interrupção ou degradação de serviço; solicitação representa um pedido padrão. O projeto utiliza conceitos de gestão de serviços, sem alegar conformidade formal com ITIL.
 
 ## Executar localmente
 
-Pré-requisitos: Node.js 22 (arquivo `.nvmrc`), npm e Docker com Compose v2.
+Pré-requisitos: Node.js 22, npm e Docker com Compose v2.
 
 ```sh
 cp .env.example .env
 npm ci
 npm run db:up
+npm run db:migrate
+npm run db:seed:demo
 npm run dev
 ```
 
-Abra http://localhost:5173. API: http://127.0.0.1:3001/health. Prontidão: http://127.0.0.1:3001/health/ready.
+O seed é opcional e cadastra apenas dois técnicos fictícios. Nenhum chamado é criado automaticamente. Para percorrer atribuição, atendimento e resolução, use os técnicos de demonstração.
 
-O Compose carrega `.env` da raiz. A API também carrega esse arquivo; o frontend recebe apenas o endereço do proxy, nunca credenciais do banco. Se mudar usuário, senha ou nome do banco, ajuste também `DATABASE_URL`. Credenciais do exemplo são somente para desenvolvimento local.
+- Interface: http://localhost:5173/tickets
+- Saúde da API: http://127.0.0.1:3001/health
+- Prontidão do banco: http://127.0.0.1:3001/health/ready
+
+O Compose e a API leem `.env` na raiz. As credenciais de `.env.example` são exclusivamente locais. Se alterar usuário, senha ou nome do banco, ajuste também `DATABASE_URL`. O frontend usa um proxy e não recebe credenciais do banco.
 
 ```sh
+npm run db:migrate:status
 npm run lint
 npm run typecheck
 npm test
 npm run build
 ```
 
-Para verificar a versão compilada, execute `npm run start -w @ramon-itops/api` e, em outro terminal, `npm run preview -w @ramon-itops/web`. O preview é local, não uma configuração de produção.
+Para testar as regras com PostgreSQL real, crie um banco dedicado (apenas na primeira execução):
 
-Para encerrar, use Ctrl+C nas aplicações e `npm run db:down`. O volume de dados é preservado.
-
-## Organização
-
-```text
-apps/web             Interface operacional React + Vite
-apps/api             API Fastify e health checks
-packages/database    Pool PostgreSQL compartilhado
-docs/               Arquitetura, regras de serviço e runbook
+```sh
+docker compose exec database createdb -U ramon_itops ramon_itops_test
+TEST_DATABASE_URL=postgresql://ramon_itops:local_dev_only@127.0.0.1:5432/ramon_itops_test npm run test:integration
 ```
 
-Um repositório, npm workspaces e um lockfile. Sem orquestrador adicional, ORM ou microsserviços nesta etapa.
+Adapte o usuário e a conexão se tiver alterado o exemplo. O teste exige nome de banco terminado em `_test`, cria um schema isolado por execução, aplica as migrations e remove somente esse schema ao encerrar. Nunca aponte testes para bancos com dados reais.
 
-## Roadmap
+Para verificar a versão compilada, execute `npm run start -w @ramon-itops/api` e, em outro terminal, `npm run preview -w @ramon-itops/web`. O preview é local, não uma configuração de produção.
 
-1. **Fundação:** ambiente reproduzível, documentação e saúde dos serviços.
-2. **Service Desk:** incidentes e solicitações, categorias, prioridade, responsável, status e histórico.
-3. **SLA e governança:** regras de prazo, backlog, chamados críticos, tempo médio de resolução e cumprimento de SLA.
-4. **Evoluções:** autenticação e perfis, automação com GitHub Actions e satisfação (CSAT/NPS, com conceitos distintos).
+## Estrutura
+
+```text
+apps/web                      React, navegação, fila, abertura e detalhe
+apps/api/src/modules/tickets  Rotas, schemas, serviços e repositório
+packages/database             Pool, transações, migrations e seed
+docs/                        Arquitetura, regras, API e runbook
+```
+
+Um monorepo com npm workspaces, TypeScript e um lockfile. SQL parametrizado com `pg`, sem ORM, microsserviços ou arquitetura distribuída.
 
 ## Documentação
 
-- [Arquitetura](docs/architecture.md)
-- [Regras de gestão de serviços](docs/service-management.md)
-- [Runbook operacional](docs/runbook.md)
-- [Validação da entrega](docs/validation.md)
-- [Orientações de contribuição](AGENTS.md)
+- [Arquitetura e decisões técnicas](docs/architecture.md)
+- [Regras de Service Desk](docs/service-management.md)
+- [Contrato REST](docs/api.md)
+- [Runbook e recuperação](docs/runbook.md)
+- [Validação e limitações](docs/validation.md)
+- [Regras de contribuição](AGENTS.md)
 
 ## Como apresentar em entrevista
 
-“Estruturei uma plataforma de operações de TI começando pela confiabilidade do ambiente. Diferenciei processo ativo de serviço pronto para uso, tratei indisponibilidade do banco, documentei diagnóstico e preparei a evolução para histórico de atendimento e métricas de SLA.”
+“Implementei um fluxo de Service Desk que diferencia incidentes de solicitações e exige contexto nas etapas de pendência, resolução e reabertura. Cada mudança é persistida junto do histórico em uma transação, e a versão do registro evita perda de atualizações simultâneas.”
 
-A Fase 1 comprova fundamentos de suporte, infraestrutura e NOC; o roadmap conecta essas bases a ITSM e governança. O projeto usa conceitos de gestão de serviços, sem alegar certificação ou conformidade formal com ITIL.
+| Competência | Evidência no projeto |
+| --- | --- |
+| Operação de Service Desk | Fila filtrável, prioridade, categoria e responsável |
+| Rastreabilidade | Timeline com valores anteriores/novos e justificativas |
+| Incidentes e solicitações | Tipos distintos e identificação INC/REQ |
+| Organização de processo | Regras de transição e solução obrigatória |
+| Persistência de dados | PostgreSQL, migrations, transações e testes de rollback |
+| Visão operacional | Health checks, diagnóstico e documentação de recuperação |
 
-## Limites
+Como ainda não há autenticação, o histórico identifica “Operador de demonstração” e não comprova a identidade de uma pessoa. Essa limitação deve ser explicada na apresentação.
 
-Ambiente local de estudo, sem autenticação ou configuração de implantação em produção. Não insira dados pessoais, chamados reais, tokens ou credenciais corporativas. Os serviços ficam vinculados ao localhost. Nenhuma licença de uso foi escolhida nesta fase.
+## Roadmap e limites
+
+- Fase 1: base operacional e saúde dos serviços.
+- Fase 2: Service Desk e histórico persistente.
+- Próxima fase: definição e implementação de SLA e indicadores reais.
+- Evoluções futuras: autenticação, perfis, notificações, GitHub Actions e satisfação.
+
+SLA, autenticação e notificações não estão implementados. A visão geral mantém métricas futuras como “Planejado · sem dados”. Sem exclusão de chamados ou cadastro administrativo de técnicos nesta fase.
+
+Ambiente de desenvolvimento vinculado ao localhost. Use apenas dados fictícios; não inclua senhas, chamados reais ou informações corporativas. Nenhuma licença foi escolhida.

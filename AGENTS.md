@@ -14,3 +14,12 @@
 - Não apagar volumes ou executar migrações destrutivas sem autorização específica.
 - Explicar como a entrega demonstra competências em uma entrevista técnica.
 - Autenticação, autorização e implantação precisam de planejamento antes de exposição em produção.
+
+## Service Desk
+
+- Alterações de schema somente por novas migrations versionadas; não editar migrations aplicadas.
+- Gravar atualização e histórico na mesma transação.
+- Preservar controle de versão no PATCH e regras documentadas de transição.
+- Rodar npm run test:integration com TEST_DATABASE_URL em banco dedicado terminado em _test antes de publicar alterações de persistência.
+- Não apresentar o ator de demonstração como identidade autenticada.
+- Preservar os health checks e a separação entre rotas, serviço e repositório.
