@@ -1,3 +1,4 @@
+import { demoMode } from "./services/environment";
 import { Sidebar } from "./components/Sidebar";
 import { BrowserRouter, Link, Route, Routes } from "react-router";
 import { OverviewPage } from "./pages/OverviewPage";
@@ -16,6 +17,17 @@ export function App() {
             </span>
             <span className="badge">DEMONSTRAÇÃO</span>
           </header>
+          {demoMode && (
+            <aside className="demo-notice" role="note">
+              <strong>Ambiente de demonstração.</strong> Não insira dados
+              pessoais, corporativos ou confidenciais.
+              <span>
+                Chamados são compartilhados e temporários, removidos após 48
+                horas na próxima limpeza. A primeira conexão pode levar cerca de
+                um minuto.
+              </span>
+            </aside>
+          )}
           <Routes>
             <Route path="/" element={<OverviewPage />} />
             <Route path="/tickets" element={<TicketListPage />} />
