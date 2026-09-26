@@ -1,48 +1,52 @@
 # Runbook operacional
 
-## Inicialização
+## Subir o ambiente
 
-1. Instalar Node.js 22, npm e Docker com Compose v2.
-2. Copiar .env.example para .env e executar npm ci na raiz.
-3. Executar npm run db:up; aguardar o banco saudável.
-4. Executar npm run dev e abrir http://localhost:5173.
-5. Confirmar /health e /health/ready e atualizar o status na interface.
+1. Usar Node.js 22, npm e Docker com Compose v2.
+2. Na raiz: cp .env.example .env e npm ci.
+3. Executar npm run db:up e aguardar o banco saudável.
+4. Executar npm run db:migrate e conferir npm run db:migrate:status.
+5. Opcional: npm run db:seed:demo para os dois técnicos fictícios.
+6. Executar npm run dev e abrir http://localhost:5173/tickets.
+
+Todos os arquivos SQL devem passar pelo executor. Não modificar schema por console SQL nem editar migrations aplicadas. O executor verifica checksum e serializa execuções simultâneas.
+
+## Exercício funcional
+
+Abrir incidente fictício → atribuir técnico → iniciar atendimento → marcar pendência com motivo → resolver com solução → reabrir com justificativa. Conferir os eventos da timeline, datas e versão. Abrir uma solicitação para verificar prefixo REQ. Testar filtros combinados na fila.
 
 ## Diagnóstico
 
-| Sintoma | Verificação | Próxima ação |
+| Sintoma | Verificação | Ação |
 | --- | --- | --- |
-| Frontend não abre | Saída do terminal; porta 5173 | Resolver processo conflitante e iniciar novamente |
-| API indisponível | curl -i http://127.0.0.1:3001/health | Conferir terminal da API, .env e API_PORT |
-| API disponível, banco indisponível | docker compose ps; docker compose logs --tail=50 database | Confirmar container, credenciais e DATABASE_URL |
-| Porta 5432 ocupada | Verificar outro PostgreSQL local | Ajustar porta publicada e DATABASE_URL em conjunto |
-| Docker não encontrado | docker version; docker compose version | Instalar/iniciar Docker e repetir db:up |
-| Credenciais alteradas não funcionam | Volume já inicializado | Usar credenciais anteriores ou alterar usuário no banco; não apagar volume para “corrigir” |
+| Frontend não abre | Terminal; porta 5173 | Resolver conflito e iniciar novamente |
+| API não responde | GET /health; terminal da API | Conferir API_PORT e .env |
+| Banco indisponível | docker compose ps; docker compose logs --tail=50 database | Iniciar container e conferir DATABASE_URL |
+| Saúde OK, chamados falham | npm run db:migrate:status | Aplicar migrations pendentes |
+| Lista sem técnicos | GET /technicians | Executar seed de demonstração |
+| Erro 409 ao salvar | Versão desatualizada | Recarregar, revisar alterações atuais e reaplicar a intenção |
+| Erro de checksum | Migration aplicada foi editada | Restaurar arquivo original; criar nova migration para correção |
+| Credenciais alteradas não funcionam | Volume já inicializado | Ajustar acesso ao banco existente; não apagar volume |
 
-Os logs da API são JSON no terminal, com identificador de requisição. Não anexar .env, senhas ou dados reais em relatos de falha.
+Logs da API são enviados ao terminal. Usar identificador de requisição e ID do chamado ao investigar. Não anexar .env ou dados reais.
 
-## Exercício controlado de indisponibilidade
-
-Com o ambiente local iniciado:
+## Indisponibilidade e recuperação local
 
 ```sh
 docker compose stop database
 curl -i http://127.0.0.1:3001/health
 curl -i http://127.0.0.1:3001/health/ready
-```
-
-Esperado: 200 no primeiro, 503 no segundo. Atualizar a interface deve mostrar API disponível e banco indisponível.
-
-```sh
 docker compose start database
 ```
 
-Aguardar saúde em docker compose ps. Readiness deve voltar a 200 sem reiniciar a API. Atualizar a interface confirma recuperação.
+Durante a falha, esperado 200 em liveness e 503 em readiness. Após o banco voltar, readiness e consulta dos chamados devem recuperar sem reiniciar a API. Recarregar a interface e confirmar que o chamado e sua timeline persistiram.
+
+## Testes de integração
+
+Criar banco dedicado ramon_itops_test com createdb (comando no README). Definir TEST_DATABASE_URL e executar npm run test:integration. Os testes criam e removem seu próprio schema; não limpam o banco de demonstração.
 
 ## Encerramento
 
-Ctrl+C nas aplicações e npm run db:down. O volume persiste. Não executar down com remoção de volumes: isso apaga os dados locais.
+Ctrl+C nas aplicações e npm run db:down. Dados permanecem no volume. Não usar remoção de volumes como procedimento de diagnóstico.
 
-## Limitação
-
-Este runbook cobre desenvolvimento local; backup, restauração, alertas automáticos e resposta a incidentes de produção serão planejados posteriormente.
+Backup/restauração, autenticação, autorização e implantação de produção ainda precisam de planejamento.

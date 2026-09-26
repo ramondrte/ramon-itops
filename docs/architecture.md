@@ -1,25 +1,44 @@
-# Arquitetura da Fase 1
+# Arquitetura e decisões
 
-Fluxo local: navegador → Vite /api → Fastify → pool PostgreSQL → PostgreSQL em Docker.
+## Fluxo
 
-React + Vite atende uma interface interna sem necessidade inicial de renderização no servidor. Fastify concentra rotas, logs estruturados e encerramento do serviço. npm workspaces mantém um único lockfile. O pacote database isola acesso ao PostgreSQL com pg; não há ORM ou tabelas de negócio nesta fase.
+Navegador → React Router/Vite → proxy /api → Fastify → serviço de chamados → repositório SQL → PostgreSQL 17.
 
-## Contratos de saúde
+npm workspaces mantém apps/web, apps/api e packages/database com um lockfile. React Router organiza as páginas e mantém filtros na URL. O frontend usa fetch; não foi adicionada biblioteca de estado global.
 
-| Rota | Resultado | Significado |
-| --- | --- | --- |
-| GET /health | 200, status ok | API responde, independentemente do banco |
-| GET /health/ready | 200, status ready, database up | Consulta SELECT 1 executada |
-| GET /health/ready | 503, status not_ready, database down | Banco indisponível ou consulta falhou |
+## Organização do backend
 
-Liveness não depende do banco para evitar confundir falha da dependência com queda do processo. Readiness permite que operações identifique degradação. Erros não retornam detalhes da conexão. O pool limita conexões e usa timeouts; sinais de encerramento fecham o pool.
+- Rotas: contrato HTTP, schemas e logs de operação.
+- Serviço: transições, requisitos de atendimento, normalização e histórico.
+- Repositório: SQL parametrizado e mapeamento dos registros.
+- Database: pool, transações e ferramentas de migrations.
 
-O health check do Compose confirma que PostgreSQL aceita conexões; o da API verifica também o acesso pela aplicação. A interface mostra banco indisponível quando não consegue confirmar sua prontidão, inclusive se a API cair. Essa limitação aparece na tela.
+SQL direto com pg aproveita a dependência existente e torna consultas e transações explícitas. O tamanho do domínio ainda não justifica ORM ou query builder. Identificadores dinâmicos de filtros são escolhidos de uma lista fixa; valores enviados pelo usuário são parâmetros SQL.
 
-## Configuração e segurança
+## Consistência
 
-API e PostgreSQL vinculados ao loopback. O proxy do Vite evita CORS no desenvolvimento e mantém credenciais no backend. O frontend não recebe DATABASE_URL. Arquivo .env ignorado, exemplo com valores locais. Volume nomeado persiste o banco. Mudanças no pacote database exigem novo build e reinício da API durante desenvolvimento.
+Criação e atualização ocorrem junto da gravação do histórico na mesma transação. Uma falha em qualquer etapa reverte o conjunto. PATCH bloqueia a linha durante a transação e compara a versão enviada; edição desatualizada retorna 409. No-op não altera versão ou data nem cria evento (chamados resolvidos exigem reabertura antes de alterações).
 
-## Próximas fases
+Listagem com contagem e detalhe com histórico usam uma visão consistente da transação. Datas são timestamptz, serializadas em ISO pela API e exibidas no fuso do navegador. Eventos com o mesmo horário são ordenados também por ID.
 
-Migrações SQL versionadas e modelo de chamados entrarão junto da primeira funcionalidade de Service Desk. Antes de exposição externa: autenticação, autorização, TLS, configuração de deploy, política de logs, backups e restauração. A Fase 1 não provisiona esses recursos.
+## Modelo
+
+categories → tickets ← technicians; tickets → ticket_history. O solicitante é um nome de exibição, não uma conta. Técnico não possui login. O ator do histórico é um identificador fixo de demonstração, não uma identidade autenticada.
+
+ID UUID interno; sequence_number bigint único gera INC/REQ com mínimo de seis dígitos, sem truncar números maiores. A sequência é compartilhada, pode conter lacunas e não é usada como métrica de volume. Tipo e solicitante são fixos nesta etapa.
+
+## Migrations
+
+001 cria catálogos, chamados, restrições e índices. 002 cria histórico. 003 cadastra as sete categorias. O executor mantém schema_migrations, verifica checksums e usa advisory lock para serializar execuções. Cada arquivo é transacional. Migrations já aplicadas são imutáveis; novas mudanças exigem novo arquivo. Não há alterações de schema automáticas ao subir a API nem rollback destrutivo automático.
+
+O seed de técnicos fictícios é separado e repetível. Não contém alterações de schema nem chamados de exemplo.
+
+## Saúde e limites
+
+GET /health continua independente do banco. GET /health/ready executa SELECT 1 e retorna 503 em falha. O health check do Compose verifica disponibilidade do servidor PostgreSQL; readiness não substitui a execução das migrations.
+
+API, Vite e banco vinculados ao loopback. Sem autenticação, autorização, notificações ou SLA. A API não deve ser exposta em produção nessa condição. Logs registram IDs e operações, sem copiar descrição ou solicitante.
+
+## Referência da dependência adicionada
+
+[React Router: navegação declarativa](https://reactrouter.com/start/declarative/routing).
