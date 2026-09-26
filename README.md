@@ -1,32 +1,38 @@
 # Ramon ITOps
 
-**Service Desk e operações de TI — projeto de portfólio com foco em suporte, infraestrutura, NOC e governança.**
+Service Desk com acompanhamento de SLA e indicadores operacionais de TI.
 
-O Ramon ITOps organiza incidentes e solicitações com persistência em PostgreSQL, responsáveis e histórico de atendimento. A evolução é incremental: primeiro a saúde do ambiente, depois o processo de Service Desk agora, SLA e indicadores de governança calculados no PostgreSQL.
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6) ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.19-43853D) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1)
 
-## Fase 3 — SLA e indicadores de governança
+[Documentação](#documentação) · [Contrato da API](docs/api.md) · [Deploy](docs/deployment.md)
 
-- SLA 24×7 por prioridade, com pausa persistente em Pendente.
-- Prioridade desconta consumo acumulado; reabertura inicia novo ciclo preservando anteriores.
-- Dashboard real com períodos de 7 dias, 30 dias e total, cobertura explícita e amostras.
-- SLA na fila e no detalhe, com atualização pelo backend a cada consulta.
-- [Política, fórmulas e limitações](docs/sla.md).
+Demonstração pública ainda não disponível. Quando publicada, os links Live Demo e API Health serão adicionados aqui.
 
-## Service Desk preservado
+## Funcionalidades
 
-- Abertura de incidentes e solicitações com números INC/REQ.
-- Fila de chamados com filtros combinados por status, prioridade e categoria, além de paginação.
-- Detalhe com contexto, datas, técnico responsável e timeline de alterações.
-- Atendimento, pendência com motivo, resolução com solução e reabertura justificada.
-- Gravação transacional de chamado e histórico; proteção contra edição concorrente.
-- PostgreSQL com migrations SQL versionadas e verificação de checksum.
-- Health checks da Fase 1 preservados.
+- Incidentes e solicitações com numeração INC/REQ, categoria, prioridade e responsável.
+- Fila paginada com filtros; detalhe com histórico, justificativas e datas.
+- Pendência, resolução e reabertura com controle de versão contra edição concorrente.
+- SLA de resolução 24×7: 24h, 12h, 4h e 1h por prioridade. Pausas e ciclos persistidos.
+- Dashboard calculado no PostgreSQL: demanda, backlog, críticos, cumprimento, violações e médias de resolução.
+- Filtros de 7 dias, 30 dias e total; população, cobertura e amostra explícitas.
+- Health checks separados para processo e prontidão do banco.
 
-Incidente representa interrupção ou degradação de serviço; solicitação representa um pedido padrão. O projeto utiliza conceitos de gestão de serviços, sem alegar conformidade formal com ITIL.
+As políticas são internas do sistema e não representam um padrão oficial de ITIL.
 
-## Executar localmente
+## Stack
 
-Pré-requisitos: Node.js 22, npm e Docker com Compose v2.
+TypeScript, Node.js, Fastify, React, React Router, Vite, PostgreSQL 17, Docker Compose e npm workspaces. Acesso ao banco por SQL parametrizado com `pg`.
+
+## Arquitetura
+
+Frontend → API REST → serviços → repositórios SQL → PostgreSQL.
+
+Chamado, SLA e histórico são persistidos em uma única transação. Migrations versionadas possuem checksum e bloqueio de execução concorrente. O frontend apresenta o SLA calculado no backend.
+
+## Desenvolvimento local
+
+Requisitos: Node.js 22, npm e Docker Desktop com Compose v2 em execução.
 
 ```sh
 cp .env.example .env
@@ -37,83 +43,81 @@ npm run db:seed:demo
 npm run dev
 ```
 
-O seed é opcional e cadastra apenas dois técnicos fictícios. Nenhum chamado é criado automaticamente. Para percorrer atribuição, atendimento e resolução, use os técnicos de demonstração.
+Copie o exemplo somente na primeira configuração; preserve seu `.env` existente. O seed opcional cria dois técnicos fictícios e nenhum chamado.
 
-- Dashboard: http://localhost:5173/
-- Fila: http://localhost:5173/tickets
-- Saúde da API: http://127.0.0.1:3001/health
-- Prontidão do banco: http://127.0.0.1:3001/health/ready
+- Interface: http://localhost:5173
+- API: http://127.0.0.1:3001
+- Liveness: http://127.0.0.1:3001/health
+- Readiness: http://127.0.0.1:3001/health/ready
 
-O Compose e a API leem `.env` na raiz. As credenciais de `.env.example` são exclusivamente locais. Se alterar usuário, senha ou nome do banco, ajuste também `DATABASE_URL`. O frontend usa um proxy e não recebe credenciais do banco.
+O banco fica restrito ao loopback. Se a porta 5432 estiver ocupada, ajuste `POSTGRES_PORT` e a porta de `DATABASE_URL` para o mesmo valor. Não há credenciais de banco no frontend.
 
-```sh
-npm run db:migrate:status
-npm run lint
-npm run typecheck
-npm test
-npm run build
-```
+## Comandos úteis
 
-Para testar as regras com PostgreSQL real, crie um banco dedicado (apenas na primeira execução):
+| Comando | Finalidade |
+| --- | --- |
+| `npm run db:up` | Subir PostgreSQL e aguardar health check |
+| `npm run db:down` | Parar container preservando volume |
+| `npm run db:migrate` | Aplicar migrations pendentes |
+| `npm run db:migrate:status` | Consultar estado das migrations |
+| `npm run db:seed:demo` | Cadastrar técnicos fictícios |
+| `npm run lint` | Verificar código |
+| `npm run typecheck` | Verificar tipos |
+| `npm test` | Testes unitários e HTTP sem banco |
+| `npm run test:integration` | Testes com PostgreSQL dedicado |
+| `npm run build` | Compilar todos os workspaces |
+| `npm run start -w @ramon-itops/api` | Iniciar API compilada |
+
+Para integração, crie uma vez o banco de testes:
 
 ```sh
 docker compose exec database createdb -U ramon_itops ramon_itops_test
 TEST_DATABASE_URL=postgresql://ramon_itops:local_dev_only@127.0.0.1:5432/ramon_itops_test npm run test:integration
 ```
 
-Adapte o usuário e a conexão se tiver alterado o exemplo. O teste exige nome de banco terminado em `_test`, cria um schema isolado por execução, aplica as migrations e remove somente esse schema ao encerrar. Nunca aponte testes para bancos com dados reais.
+Adapte a conexão ao seu `.env`. Os testes exigem banco terminado em `_test`, criam schemas isolados e removem somente esses schemas. Nunca use banco com dados reais. O preview do Vite (`npm run preview -w @ramon-itops/web`) é apenas para verificação local do build.
 
-Para verificar a versão compilada, execute `npm run start -w @ramon-itops/api` e, em outro terminal, `npm run preview -w @ramon-itops/web`. O preview é local, não uma configuração de produção.
+## API
+
+| Método | Endpoint | Uso |
+| --- | --- | --- |
+| POST | `/tickets` | Abrir chamado |
+| GET | `/tickets` | Listar e filtrar |
+| GET | `/tickets/:id` | Detalhe, SLA e histórico |
+| PATCH | `/tickets/:id` | Atualizar com versão do registro |
+| GET | `/categories`, `/technicians` | Catálogos |
+| GET | `/metrics/overview?period=7d\|30d\|all` | Indicadores |
+| GET | `/health`, `/health/ready` | Liveness e readiness |
 
 ## Estrutura
 
 ```text
-apps/web                      React, navegação, fila, abertura e detalhe
-apps/api/src/modules/tickets  Rotas, schemas, serviços e repositório
-packages/database             Pool, transações, migrations e seed
-docs/                        Arquitetura, regras, API e runbook
+apps/web/                   Interface e navegação
+apps/api/src/modules/       Chamados, SLA e indicadores
+packages/database/          Pool, migrations e seed
+docs/                       Contratos, decisões e operação
 ```
-
-Um monorepo com npm workspaces, TypeScript e um lockfile. SQL parametrizado com `pg`, sem ORM, microsserviços ou arquitetura distribuída.
 
 ## Documentação
 
-- [Arquitetura e decisões técnicas](docs/architecture.md)
-- [Regras de Service Desk](docs/service-management.md)
-- [Contrato REST](docs/api.md)
-- [Runbook e recuperação](docs/runbook.md)
-- [Validação e limitações](docs/validation.md)
+- [Arquitetura](docs/architecture.md)
+- [Service Desk](docs/service-management.md)
+- [Política e fórmulas de SLA](docs/sla.md)
+- [API](docs/api.md)
+- [Runbook](docs/runbook.md)
+- [Ambientes e estratégia de deploy](docs/deployment.md)
+- [Validação e limitações do ambiente](docs/validation.md)
 - [Regras de contribuição](AGENTS.md)
 
-## Como apresentar em entrevista
+## Roadmap
 
-“Modelei SLA como ciclos e pausas persistidos, com resultado congelado na resolução e novo ciclo na reabertura. As atualizações são transacionais e o relógio é injetável nos testes. Os indicadores vêm do PostgreSQL e explicitam população, cobertura e amostra, evitando comparar chamados legados como se tivessem SLA desde a criação.”
+- Publicar ambiente de demonstração isolado.
+- Autenticação e perfis de acesso.
+- Automação de verificações no GitHub Actions.
+- Notificações e avaliação do atendimento.
 
-Demonstre: criar incidente de prioridade Alta; entrar em Pendente e atualizar o SLA para verificar saldo congelado; retomar, resolver e reabrir; consultar ciclos preservados. No dashboard, compare período, backlog atual e resoluções elegíveis. Use testes com relógio controlado para demonstrar violação sem esperar horas. Explique como violações orientam revisão de atendimento, categorias ajudam a priorizar demanda e backlog exige acompanhamento ao longo do tempo antes de afirmar tendência.
+## Limitações
 
-Isso evidencia gestão de SLA, indicadores, monitoramento de desempenho, governança operacional, tratamento de pendência, rastreabilidade, consistência transacional e interpretação de dados.
+Sem autenticação, autorização, notificações, calendário comercial ou snapshots históricos de indicadores. CORS não controla acesso à API fora do navegador. A publicação aberta exige decidir como tratar escrita anônima e abuso, antes do deploy.
 
-
-“Implementei um fluxo de Service Desk que diferencia incidentes de solicitações e exige contexto nas etapas de pendência, resolução e reabertura. Cada mudança é persistida junto do histórico em uma transação, e a versão do registro evita perda de atualizações simultâneas.”
-
-| Competência | Evidência no projeto |
-| --- | --- |
-| Operação de Service Desk | Fila filtrável, prioridade, categoria e responsável |
-| Rastreabilidade | Timeline com valores anteriores/novos e justificativas |
-| Incidentes e solicitações | Tipos distintos e identificação INC/REQ |
-| Organização de processo | Regras de transição e solução obrigatória |
-| Persistência de dados | PostgreSQL, migrations, transações e testes de rollback |
-| Visão operacional | Health checks, diagnóstico e documentação de recuperação |
-
-Como ainda não há autenticação, o histórico identifica “Operador de demonstração” e não comprova a identidade de uma pessoa. Essa limitação deve ser explicada na apresentação.
-
-## Roadmap e limites
-
-- Fase 1: base operacional e saúde dos serviços.
-- Fase 2: Service Desk e histórico persistente.
-- Fase 3: SLA persistente e indicadores reais de governança.
-- Evoluções futuras: autenticação, perfis, notificações, GitHub Actions e satisfação.
-
-Autenticação e notificações não estão implementadas. O dashboard mostra “Sem dados” quando não há amostra elegível. Sem exclusão de chamados ou cadastro administrativo de técnicos nesta fase.
-
-Ambiente de desenvolvimento vinculado ao localhost. Use apenas dados fictícios; não inclua senhas, chamados reais ou informações corporativas. Nenhuma licença foi escolhida.
+Use somente dados fictícios. O histórico registra ator de demonstração, não identidade autenticada. Chamados legados têm cobertura parcial explícita e não entram nos indicadores que exigem cobertura integral. Sem licença definida.

@@ -12,7 +12,7 @@
 - Manter README e runbook coerentes com comandos e comportamento atuais.
 - Não apresentar indicadores planejados como dados reais.
 - Não apagar volumes ou executar migrações destrutivas sem autorização específica.
-- Explicar como a entrega demonstra competências em uma entrevista técnica.
+- Manter README e documentação técnicos, sem roteiros de entrevista ou linguagem de recrutamento.
 - Autenticação, autorização e implantação precisam de planejamento antes de exposição em produção.
 
 ## Service Desk
