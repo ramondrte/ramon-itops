@@ -20,7 +20,8 @@
     "db:migrate": "npm run migrate -w @ramon-itops/database",
     "db:migrate:status": "npm run migrate:status -w @ramon-itops/database",
     "db:seed:demo": "npm run seed:demo -w @ramon-itops/database",
-    "test:integration": "npm run build -w @ramon-itops/database && npm run test:integration -w @ramon-itops/api"
+    "test:integration": "npm run build -w @ramon-itops/database && npm run test:integration -w @ramon-itops/api",
+    "demo:prepare": "npm run demo:prepare -w @ramon-itops/api --"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
