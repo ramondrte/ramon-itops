@@ -1,3 +1,5 @@
+import { loadSla, openSla, updateSla } from "../sla/sla.service.js";
+import { systemClock, type Clock } from "../sla/sla.engine.js";
 import type { PoolClient } from "@ramon-itops/database";
 import { TicketsRepository } from "./tickets.repository.js";
 import {
@@ -27,7 +29,17 @@ function requireText(
     );
 }
 export class TicketsService {
-  constructor(public repository: TicketsRepository) {}
+  constructor(
+    public repository: TicketsRepository,
+    public clock: Clock = systemClock,
+  ) {}
+  private async decorate(ticket: Ticket, client: PoolClient, at: Date) {
+    return {
+      ...ticket,
+      history: await this.repository.history(ticket.id, client),
+      ...(await loadSla(client, [ticket.id], at)).get(ticket.id)!,
+    };
+  }
   private async validateReferences(
     category: string,
     technician: string | null | undefined,
@@ -63,7 +75,7 @@ export class TicketsService {
       const ticket = await this.repository.get(id, client);
       if (!ticket)
         throw new TicketError(404, "not_found", "Chamado não encontrado.");
-      return { ...ticket, history: await this.repository.history(id, client) };
+      return this.decorate(ticket, client, this.clock());
     });
   }
   async create(raw: TicketInput) {
@@ -77,7 +89,9 @@ export class TicketsService {
         input.technician_id,
         client,
       );
-      const ticket = await this.repository.insert(input, client);
+      const at = this.clock();
+      const ticket = await this.repository.insert(input, client, at);
+      await openSla(client, ticket, at, "created");
       await this.repository.record(
         ticket.id,
         "created",
@@ -94,11 +108,9 @@ export class TicketsService {
         ),
         null,
         client,
+        at,
       );
-      return {
-        ...ticket,
-        history: await this.repository.history(ticket.id, client),
-      };
+      return this.decorate(ticket, client, at);
     });
   }
   async update(id: string, raw: TicketPatch) {
@@ -114,6 +126,8 @@ export class TicketsService {
           "version_conflict",
           "Este chamado foi alterado. Recarregue os dados antes de salvar.",
         );
+      const at = this.clock();
+      const beforeSla = (await loadSla(client, [id], at)).get(id)!;
       const { version: _version, reopen_reason, ...fields } = patch;
       void _version;
       const next: Ticket = { ...previous, ...fields };
@@ -163,7 +177,7 @@ export class TicketsService {
       else next.pending_reason = null;
       if (next.status === "resolved") {
         requireText(next.resolution_summary, 5, "Resumo da solução");
-        next.resolved_at = new Date();
+        next.resolved_at = at;
       } else {
         next.resolved_at = null;
         next.resolution_summary = null;
@@ -184,11 +198,10 @@ export class TicketsService {
         "resolution_summary",
       ] as const;
       if (!keys.some((key) => previous[key] !== next[key]))
-        return {
-          ...previous,
-          history: await this.repository.history(id, client),
-        };
-      const saved = await this.repository.save(next, client);
+        return this.decorate(previous, client, at);
+      const saved = await this.repository.save(next, client, at);
+      await updateSla(client, previous, saved, at);
+      const afterSla = (await loadSla(client, [id], at)).get(id)!;
       const changes: Record<string, { from: unknown; to: unknown }> = {};
       for (const key of keys) {
         if (previous[key] === saved[key]) continue;
@@ -203,6 +216,25 @@ export class TicketsService {
           to: saved[displayKey],
         };
       }
+      if (
+        previous.priority !== saved.priority ||
+        previous.status !== saved.status
+      ) {
+        changes.sla = { from: beforeSla.sla.label, to: afterSla.sla.label };
+        changes.sla_budget = {
+          from:
+            "budget_label" in beforeSla.sla ? beforeSla.sla.budget_label : null,
+          to: "budget_label" in afterSla.sla ? afterSla.sla.budget_label : null,
+        };
+        changes.sla_balance = {
+          from:
+            "balance_label" in beforeSla.sla
+              ? beforeSla.sla.balance_label
+              : null,
+          to:
+            "balance_label" in afterSla.sla ? afterSla.sla.balance_label : null,
+        };
+      }
       const action = reopening
         ? "reopened"
         : saved.status === "resolved"
@@ -214,8 +246,9 @@ export class TicketsService {
         changes,
         reopen_reason ?? null,
         client,
+        at,
       );
-      return { ...saved, history: await this.repository.history(id, client) };
+      return this.decorate(saved, client, at);
     });
   }
 }

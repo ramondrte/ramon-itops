@@ -1,3 +1,4 @@
+import { systemClock, type Clock } from "../sla/sla.engine.js";
 import type { FastifyInstance } from "fastify";
 import type { Database } from "@ramon-itops/database";
 import { TicketsRepository } from "./tickets.repository.js";
@@ -9,9 +10,13 @@ import {
   filterSchema,
 } from "./tickets.schemas.js";
 import type { TicketInput, TicketPatch, Filters } from "./tickets.types.js";
-export function registerTickets(app: FastifyInstance, db: Database) {
-  const repository = new TicketsRepository(db);
-  const service = new TicketsService(repository);
+export function registerTickets(
+  app: FastifyInstance,
+  db: Database,
+  clock: Clock = systemClock,
+) {
+  const repository = new TicketsRepository(db, clock);
+  const service = new TicketsService(repository, clock);
   app.get(
     "/categories",
     async () =>

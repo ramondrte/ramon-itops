@@ -1,3 +1,5 @@
+import { loadSla } from "../sla/sla.service.js";
+import { systemClock, type Clock } from "../sla/sla.engine.js";
 import type { Database, PoolClient } from "@ramon-itops/database";
 import type { Filters, Ticket, TicketInput } from "./tickets.types.js";
 const projection = `SELECT t.*, (CASE t.type WHEN 'incident' THEN 'INC-' ELSE 'REQ-' END) ||
@@ -5,7 +7,10 @@ const projection = `SELECT t.*, (CASE t.type WHEN 'incident' THEN 'INC-' ELSE 'R
   c.name AS category_name, tech.name AS technician_name
   FROM tickets t JOIN categories c ON c.id=t.category_id LEFT JOIN technicians tech ON tech.id=t.technician_id`;
 export class TicketsRepository {
-  constructor(public db: Database) {}
+  constructor(
+    public db: Database,
+    public clock: Clock = systemClock,
+  ) {}
   async get(id: string, client?: PoolClient) {
     const sql = `${projection} WHERE t.id=$1`;
     return (
@@ -46,13 +51,32 @@ export class TicketsRepository {
           [...values, pageSize, (page - 1) * pageSize],
         )
       ).rows;
-      return { items, total, page, page_size: pageSize };
+      const at = this.clock();
+      const states = await loadSla(
+        client,
+        items.map((t) => t.id),
+        at,
+      );
+      return {
+        items: items.map((ticket) => ({
+          ...ticket,
+          sla: states.get(ticket.id)!.sla,
+        })),
+        total,
+        page,
+        page_size: pageSize,
+        calculated_at: at,
+      };
     });
   }
-  async insert(input: TicketInput, client: PoolClient) {
+  async insert(
+    input: TicketInput,
+    client: PoolClient,
+    at: Date = this.clock(),
+  ) {
     const result = await client.query(
-      `INSERT INTO tickets(title, description, type, category_id, priority, requester, technician_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      `INSERT INTO tickets(title, description, type, category_id, priority, requester, technician_id, created_at, updated_at)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$8) RETURNING id`,
       [
         input.title,
         input.description,
@@ -61,15 +85,16 @@ export class TicketsRepository {
         input.priority,
         input.requester,
         input.technician_id ?? null,
+        at,
       ],
     );
     return (await this.get(result.rows[0].id, client))!;
   }
-  async save(ticket: Ticket, client: PoolClient) {
+  async save(ticket: Ticket, client: PoolClient, at: Date = this.clock()) {
     await client.query(
       `UPDATE tickets SET title=$2, description=$3, category_id=$4, priority=$5,
       status=$6, technician_id=$7, pending_reason=$8, resolution_summary=$9, resolved_at=$10,
-      updated_at=clock_timestamp(), version=version+1 WHERE id=$1`,
+      updated_at=$11, version=version+1 WHERE id=$1`,
       [
         ticket.id,
         ticket.title,
@@ -81,6 +106,7 @@ export class TicketsRepository {
         ticket.pending_reason,
         ticket.resolution_summary,
         ticket.resolved_at,
+        at,
       ],
     );
     return (await this.get(ticket.id, client))!;
@@ -91,10 +117,11 @@ export class TicketsRepository {
     changes: object,
     note: string | null,
     client: PoolClient,
+    at: Date = this.clock(),
   ) {
     await client.query(
-      "INSERT INTO ticket_history(ticket_id, action, changes, note) VALUES ($1,$2,$3,$4)",
-      [id, action, JSON.stringify(changes), note],
+      "INSERT INTO ticket_history(ticket_id, action, changes, note, created_at) VALUES ($1,$2,$3,$4,$5)",
+      [id, action, JSON.stringify(changes), note, at],
     );
   }
 }
