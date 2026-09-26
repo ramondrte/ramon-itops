@@ -2,9 +2,17 @@
 
 **Service Desk e operações de TI — projeto de portfólio com foco em suporte, infraestrutura, NOC e governança.**
 
-O Ramon ITOps organiza incidentes e solicitações com persistência em PostgreSQL, responsáveis e histórico de atendimento. A evolução é incremental: primeiro a saúde do ambiente, depois o processo de Service Desk e, futuramente, SLA e indicadores de governança.
+O Ramon ITOps organiza incidentes e solicitações com persistência em PostgreSQL, responsáveis e histórico de atendimento. A evolução é incremental: primeiro a saúde do ambiente, depois o processo de Service Desk agora, SLA e indicadores de governança calculados no PostgreSQL.
 
-## Fase 2 — Service Desk
+## Fase 3 — SLA e indicadores de governança
+
+- SLA 24×7 por prioridade, com pausa persistente em Pendente.
+- Prioridade desconta consumo acumulado; reabertura inicia novo ciclo preservando anteriores.
+- Dashboard real com períodos de 7 dias, 30 dias e total, cobertura explícita e amostras.
+- SLA na fila e no detalhe, com atualização pelo backend a cada consulta.
+- [Política, fórmulas e limitações](docs/sla.md).
+
+## Service Desk preservado
 
 - Abertura de incidentes e solicitações com números INC/REQ.
 - Fila de chamados com filtros combinados por status, prioridade e categoria, além de paginação.
@@ -31,7 +39,8 @@ npm run dev
 
 O seed é opcional e cadastra apenas dois técnicos fictícios. Nenhum chamado é criado automaticamente. Para percorrer atribuição, atendimento e resolução, use os técnicos de demonstração.
 
-- Interface: http://localhost:5173/tickets
+- Dashboard: http://localhost:5173/
+- Fila: http://localhost:5173/tickets
 - Saúde da API: http://127.0.0.1:3001/health
 - Prontidão do banco: http://127.0.0.1:3001/health/ready
 
@@ -78,6 +87,13 @@ Um monorepo com npm workspaces, TypeScript e um lockfile. SQL parametrizado com 
 
 ## Como apresentar em entrevista
 
+“Modelei SLA como ciclos e pausas persistidos, com resultado congelado na resolução e novo ciclo na reabertura. As atualizações são transacionais e o relógio é injetável nos testes. Os indicadores vêm do PostgreSQL e explicitam população, cobertura e amostra, evitando comparar chamados legados como se tivessem SLA desde a criação.”
+
+Demonstre: criar incidente de prioridade Alta; entrar em Pendente e atualizar o SLA para verificar saldo congelado; retomar, resolver e reabrir; consultar ciclos preservados. No dashboard, compare período, backlog atual e resoluções elegíveis. Use testes com relógio controlado para demonstrar violação sem esperar horas. Explique como violações orientam revisão de atendimento, categorias ajudam a priorizar demanda e backlog exige acompanhamento ao longo do tempo antes de afirmar tendência.
+
+Isso evidencia gestão de SLA, indicadores, monitoramento de desempenho, governança operacional, tratamento de pendência, rastreabilidade, consistência transacional e interpretação de dados.
+
+
 “Implementei um fluxo de Service Desk que diferencia incidentes de solicitações e exige contexto nas etapas de pendência, resolução e reabertura. Cada mudança é persistida junto do histórico em uma transação, e a versão do registro evita perda de atualizações simultâneas.”
 
 | Competência | Evidência no projeto |
@@ -95,9 +111,9 @@ Como ainda não há autenticação, o histórico identifica “Operador de demon
 
 - Fase 1: base operacional e saúde dos serviços.
 - Fase 2: Service Desk e histórico persistente.
-- Próxima fase: definição e implementação de SLA e indicadores reais.
+- Fase 3: SLA persistente e indicadores reais de governança.
 - Evoluções futuras: autenticação, perfis, notificações, GitHub Actions e satisfação.
 
-SLA, autenticação e notificações não estão implementados. A visão geral mantém métricas futuras como “Planejado · sem dados”. Sem exclusão de chamados ou cadastro administrativo de técnicos nesta fase.
+Autenticação e notificações não estão implementadas. O dashboard mostra “Sem dados” quando não há amostra elegível. Sem exclusão de chamados ou cadastro administrativo de técnicos nesta fase.
 
 Ambiente de desenvolvimento vinculado ao localhost. Use apenas dados fictícios; não inclua senhas, chamados reais ou informações corporativas. Nenhuma licença foi escolhida.

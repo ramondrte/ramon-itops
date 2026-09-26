@@ -23,3 +23,10 @@
 - Rodar npm run test:integration com TEST_DATABASE_URL em banco dedicado terminado em _test antes de publicar alterações de persistência.
 - Não apresentar o ator de demonstração como identidade autenticada.
 - Preservar os health checks e a separação entre rotas, serviço e repositório.
+
+## SLA e governança
+
+- Preservar ciclos encerrados e cobertura parcial dos legados; não inventar retroatividade.
+- Calcular SLA no backend e métricas no PostgreSQL; nunca apresentar exemplos como métricas reais.
+- Usar relógio injetável nos testes; mudanças de chamado, SLA e histórico devem ser atômicas.
+- Manter explícitas as populações, amostras e exclusões dos indicadores em docs e interface.
