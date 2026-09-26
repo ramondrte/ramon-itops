@@ -17,3 +17,5 @@ if (apiBaseUrl !== "/api") {
   )
     throw new Error("Build público exige URL HTTPS da API remota");
 }
+
+export const demoMode = import.meta.env.VITE_DEMO_MODE === "true";

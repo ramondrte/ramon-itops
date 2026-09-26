@@ -1,4 +1,5 @@
-import { apiBaseUrl } from "./environment";
+import { requestApi } from "./http";
+import { apiBaseUrl, demoMode } from "./environment";
 import type { SlaView } from "./sla";
 import { useEffect, useState } from "react";
 export const priorityLabels = {
@@ -60,38 +61,12 @@ export interface TicketList {
   page: number;
   page_size: number;
 }
-export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+export { ApiError } from "./http";
 export async function api<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(`${apiBaseUrl}${path}`, {
-      ...options,
-      headers: { "Content-Type": "application/json", ...options.headers },
-      signal: options.signal ?? AbortSignal.timeout(10000),
-    });
-  } catch {
-    throw new ApiError(
-      0,
-      "Não foi possível acessar o serviço. Verifique a conexão e tente novamente.",
-    );
-  }
-  const body = await response.json().catch(() => null);
-  if (!response.ok)
-    throw new ApiError(
-      response.status,
-      body?.message ?? "Não foi possível concluir a operação. Tente novamente.",
-    );
-  return body as T;
+  return requestApi<T>(apiBaseUrl, path, options, demoMode);
 }
 export function useCatalog() {
   const [categories, setCategories] = useState<Option[]>([]);
