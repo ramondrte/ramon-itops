@@ -105,7 +105,7 @@ export function OverviewPage() {
                 note="Não resolvidos · todas as datas"
               />
             </section>
-            <div className="dashboard-section-heading">
+            <div id="sla-indicadores" className="dashboard-section-heading">
               <h2>Resoluções do período</h2>
               <span>
                 {data.tickets.resolved_in_period} chamado(s) atualmente
