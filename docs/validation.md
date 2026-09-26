@@ -1,3 +1,46 @@
+# Publicação Render + Neon — 26/09/2026 UTC
+
+Aplicação: https://ramon-itops.onrender.com. API: https://ramon-itops-api.onrender.com. Serviços gratuitos, API e Neon na Virgínia; frontend em CDN global. Node.js 22 no Render, PostgreSQL 17 no Neon. Sem cartão, upgrade, dados reais ou dependência da máquina local. Painel Render conferido: workspace Hobby, nenhum cartão cadastrado e custo atual US$ 0,00.
+
+## Banco e publicação
+
+- Primeira preparação controlada executou migrations, status, seed e vínculo de demo antes da API atender. `db:migrate:status` confirmou 001_create_service_desk, 002_create_ticket_history, 003_seed_categories, 004_create_sla_tracking, 005_initialize_existing_ticket_sla, 006_add_metrics_indexes e 007_create_demo_controls como applied.
+- Seed cadastrou apenas dois técnicos fictícios. Os chamados de validação foram criados pela API pública.
+- Conexão runtime/migration exigiu TLS verify-full. Readiness retornou 200 com database up. Credenciais somente no painel, nunca no repositório ou frontend.
+- Comandos administrativos foram removidos do build após bootstrap; build/start normais não executam migrations. Deploy automático desligado.
+- HTTPS, CORS com origem exata, CSP do frontend com origem real, cabeçalhos de segurança e rewrite SPA configurados e conferidos por respostas HTTP.
+
+## Testes públicos
+
+- Duas rodadas do fluxo com dados fictícios: criação, atribuição, atendimento, prioridade crítica, pendência, retomada, resolução, reabertura e nova resolução. Cada rodada passou 19 verificações HTTP incluindo saúde, detalhe, filtros, indicadores 7d/30d/all, conflito 409 e CORS.
+- Detalhe registrou dois ciclos de SLA e nove eventos. Durante pendência: saldo congelado, pausa persistida e sla_due_at null. Depois de reabrir/resolver: resultado met_after_reopen e preservação do primeiro ciclo.
+- Dashboard público exibiu dados reais e amostra; fila e detalhe carregaram após acesso direto e refresh no navegador.
+- CORS: preflight PATCH autorizado retornou 204 e origem exata; escrita com origem não autorizada retornou 403.
+- Rate limit inicial: 30 tentativas inválidas de PATCH retornaram 400 e a 31ª retornou 429 com Retry-After. Após restaurar o comando normal e configurar proxy, variar o prefixo X-Forwarded-For em cada tentativa não burlou a quota; retorno 429 preservado.
+- Persistência após redeploy: ID, versão, estado, histórico e campos dos dois ciclos permaneceram idênticos. Somente calculated_at, campo derivado da consulta, mudou.
+
+## Diagnóstico temporário do proxy
+
+Com autorização explícita, o comando de início foi temporariamente substituído por uma inicialização equivalente com log agregado para sondas no health. Não houve alteração em regra de negócio, schema ou endpoint de aplicação. O registro continha apenas contagem de saltos, índices e booleanos, sem IPs de visitantes ou segredos.
+
+Cadeia normal: três entradas X-Forwarded-For, visitante na posição 2 a partir da direita. Prefixo forjado: quatro entradas, visitante continuou na posição 2 e o prefixo ficou na posição 3. Cabeçalho CF-Connecting-IP forjado foi bloqueado pela borda com 403. Configuração resultante: TRUST_PROXY_HOPS=3. Comando final restaurado: `npm run start -w @ramon-itops/api`, redeploy concluído e fluxo/health/rate limit testados novamente.
+
+## Cold start
+
+Após mais de 16 minutos sem consultas da validação e sem abas públicas atualizando, a primeira consulta HTTPS ao readiness levou 23,428 segundos e retornou 200, status ready e database up em 26/09/2026 às 04:16:27 UTC. O frontend exibiu a mensagem de serviço iniciando durante a retomada. Em seguida /health retornou 200 e o chamado anterior manteve versão e histórico. Esse tempo é uma observação, não um SLA garantido do provedor.
+
+## Regressão local
+
+Após configuração pública: lint, typecheck, 11 testes unitários/HTTP, build, 20 resultados de integração com PostgreSQL Docker em banco de testes e git diff --check passaram. Regras de negócio e migrations existentes não foram alteradas nesta publicação.
+
+## Limites da evidência
+
+Não houve teste de carga/DDoS, nem comparação simultânea de dois visitantes em redes independentes. A confiança por número de saltos exige revalidação se a topologia mudar. A limpeza de 48h foi testada com relógio controlável local; não aguardamos 48h no serviço público. Demo sem autenticação, com dados compartilhados e temporários; quotas e cold start impedem promessa de disponibilidade contínua. Logs próprios dos provedores seguem suas políticas.
+
+As seções abaixo preservam os registros históricos de cada etapa.
+
+---
+
 # Preparação da demo pública — 26/09/2026 UTC
 
 Preparação local concluída; nenhum recurso Render/Neon foi criado. Não há URLs públicas validadas nesta etapa.
